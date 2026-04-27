@@ -580,7 +580,7 @@
           <iframe class="map-frame" src="https://maps.google.com/maps?q=Cape+Town+Science+Centre&t=&z=15&ie=UTF8&iwloc=&output=embed"  class="map-frame"  title="map"></iframe>
         </div>
     </div>
-    <div class="footer-bottom">&copy; 2026 INKOMANE Project. All Rights Reserved.</div>
+    <div class="footer-bottom">&copy; 2024 INKOMANE Project. All Rights Reserved.</div>
 </footer>
 
 <div id="toast">Message</div>

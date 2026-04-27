@@ -53,3 +53,14 @@ $app->singleton(
 */
 
 return $app;
+
+  withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(function (\Throwable $e, $request) {
+        if ($request->is('api')) {
+            return response()->json([
+                'success' => false, 
+                'message' => $e->getMessage() ?: 'Server error'
+            ], 500);
+        }
+    });
+})->create();

@@ -1,24 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ApiRouterController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+// This loads your HTML page when you visit http://127.0.0.1:8000
+Route::view('/', 'post.page');
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// This handles all your JavaScript API calls
+Route::match(['get', 'post'], '/api', [ApiRouterController::class, 'handleRequest']);
 
-
-Route::get('/insert', function(){
-    
-    return view('post.page');
-});
