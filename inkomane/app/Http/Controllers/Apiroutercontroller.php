@@ -233,6 +233,14 @@ class ApiRouterController extends Controller
         // ── REJECT SINGLE APP ──
         if ($action === 'reject_app') {
             try {
+                // Self-repair: Ensure status column is VARCHAR and can handle 'rejected'
+                // This fixes the SQLSTATE[01000] truncation error if the column is an ENUM
+                try {
+                    DB::statement("ALTER TABLE applications MODIFY status VARCHAR(50) DEFAULT 'pending'");
+                } catch (\Exception $e) {
+                    // Ignore if already VARCHAR or if user lacks permissions
+                }
+
                 $appId = $request->input('id');
                 $app = DB::table('applications')->where('id', $appId)->first();
                 if ($app) {
@@ -245,7 +253,7 @@ class ApiRouterController extends Controller
                     return response()->json(['success' => true]);
                 }
             } catch (\Exception $e) {
-                return response()->json(['success' => false, 'message' => $e->getMessage()]);
+                return response()->json(['success' => false, 'message' => 'Schema Error: ' . $e->getMessage()]);
             }
             return response()->json(['success' => false, 'message' => 'Application not found']);
         }
@@ -296,6 +304,11 @@ class ApiRouterController extends Controller
 
         if ($action === 'save_user') {
             try {
+                $auth = Session::get('auth');
+                if (!$auth || $auth['role'] !== 'Admin') {
+                    return response()->json(['success' => false, 'message' => 'Unauthorized: Admin access required.']);
+                }
+
                 $id = $request->input('id');
                 $data = [
                     'name'         => $request->input('name'), 
@@ -419,6 +432,10 @@ class ApiRouterController extends Controller
 
     private function confirmSingleApp($appId)
     {
+        try {
+            DB::statement("ALTER TABLE applications MODIFY status VARCHAR(50) DEFAULT 'pending'");
+        } catch (\Exception $e) {}
+
         $app = DB::table('applications')->where('id', $appId)->first();
         if ($app) {
             DB::table('applications')->where('id', $appId)->update(['status' => 'confirmed']);

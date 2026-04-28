@@ -232,6 +232,15 @@
             max-width: 400px; width: 100%;
         }
         
+        .customer-login-box {
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 18px;
+            text-align: left;
+            border: 1px solid var(--glass-border);
+        }
+        
         .login-card {
             background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
             padding: 20px; border-radius: 10px; text-align: center; transition: 0.3s;
@@ -363,40 +372,35 @@
     </div>
 </section>
 
-<!-- ═══════════════ LOGIN (UPDATED) ═══════════════ -->
+<!-- ═══════════════ LOGIN ═══════════════ -->
 <section id="login" class="view-section">
-    <div class="center-box" style="max-width: 900px;">
+    <div class="center-box">
         <div class="glass-panel" style="text-align:center;">
-            <h2 style="margin-bottom:6px;">System Login</h2>
-            <p style="color:var(--text-dim); margin-bottom:26px; font-size:0.9rem;">Select your role to access the portal.</p>
+            <h2 style="margin-bottom:6px;">Welcome Back</h2>
+            <p style="color:var(--text-dim); margin-bottom:26px; font-size:0.9rem;">Sign in to access your dashboard, status, or configuration tools.</p>
 
-            <div class="login-options">
-                <div class="login-card">
-                    <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i>
-                    <h3 style="font-size: 1.5rem; margin-bottom: 10px;">Login to Portal</h3>
-                    <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:25px;">Enter your credentials to access your dashboard.</p>
-                    
-                    <div style="text-align: left; margin-bottom: 15px;">
-                        <label style="font-size: 0.8rem; color: var(--text-dim);">Email Address</label>
-                        <input type="email" id="uniEmail" placeholder="email@example.com">
-                    </div>
-                    
-                    <div style="text-align: left; margin-bottom: 25px;">
-                        <label style="font-size: 0.8rem; color: var(--text-dim);">Password</label>
-                        <input type="password" id="uniPass" placeholder="••••••••">
-                    </div>
+            <div class="customer-login-box" style="padding: 30px;">
+                <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:20px; text-align:center;">
+                    <i class="fas fa-shield-alt" style="color:var(--accent); font-size: 2.5rem; display: block; margin-bottom: 10px;"></i>
+                    Unified System Access
+                </p>
+                
+                <label style="font-size:0.82rem; color:var(--text-dim);">Email Address</label>
+                <input type="email" id="uniEmail" placeholder="e.g. alice@example.com">
+                
+                <label style="font-size:0.82rem; color:var(--text-dim);">Password</label>
+                <input type="password" id="uniPass" placeholder="••••••••">
 
-                    <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1rem;" onclick="unifiedLogin()">
-                        <i class="fas fa-sign-in-alt"></i> Access System
-                    </button>
-                </div>
+                <button class="btn-primary" style="width:100%; padding: 15px; font-size: 1rem; margin-top: 10px;" onclick="unifiedLogin()">
+                    <i class="fas fa-sign-in-alt"></i> Login & Access
+                </button>
             </div>
 
-            <p style="margin-top:25px; font-size:0.85rem; color:var(--text-dim);">
-                Need support? <a href="#" onclick="router('apply')" style="color:var(--accent); font-weight:600;">Apply for Support →</a>
+            <p style="font-size:0.85rem; color:var(--text-dim);">
+                New here? <a href="#" onclick="router('apply')" style="color:var(--accent); font-weight:600;">Apply for Support →</a>
             </p>
-            <p style="margin-top:10px; font-size:0.85rem; color:var(--text-dim);">
-                New Staff? <a href="#" onclick="router('register')" style="color:var(--secondary); font-weight:600;">Create Internal Account</a>
+            <p style="font-size:0.82rem; color:var(--text-dim); margin-top: 10px;">
+                Internal Staff? <a href="#" onclick="router('register')" style="color:var(--secondary);">Create Internal Account</a>
             </p>
         </div>
     </div>
@@ -411,53 +415,55 @@
                 Tell us who you are and describe your issue. An agent will be assigned — log back in with your email to see your confirmation.
             </p>
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Full Name *</p>
-            <input type="text"  id="applyName"    placeholder="e.g. Alice Smith">
+            <div class="customer-login-box">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Full Name *</p>
+                <input type="text"  id="applyName"    placeholder="e.g. Alice Smith">
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Email Address *</p>
-            <input type="email" id="applyEmail"   placeholder="e.g. alice@email.com">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Email Address *</p>
+                <input type="email" id="applyEmail"   placeholder="e.g. alice@email.com">
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Create Tracking Password *</p>
-            <input type="password" id="applyPass" placeholder="••••••••">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Create Tracking Password *</p>
+                <input type="password" id="applyPass" placeholder="••••••••">
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Department</p>
-            <select id="applyDept">
-                <option value="Sales">Sales Department</option>
-                <option value="Technical">Technical Support</option>
-                <option value="Billing">Billing Accounts</option>
-            </select>
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Department</p>
+                <select id="applyDept">
+                    <option value="Sales">Sales Department</option>
+                    <option value="Technical">Technical Support</option>
+                    <option value="Billing">Billing Accounts</option>
+                </select>
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:6px; text-align:left;">Issue Category — rotate the cube and click a face</p>
-            <div class="scene">
-                <div class="cube" id="applyCube">
-                    <div class="cube-face front"  onclick="setRegCat('Hardware')">Hardware</div>
-                    <div class="cube-face back"   onclick="setRegCat('Software')">Software</div>
-                    <div class="cube-face right"  onclick="setRegCat('Network')">Network</div>
-                    <div class="cube-face left"   onclick="setRegCat('Account')">Account</div>
-                    <div class="cube-face top"    onclick="setRegCat('Access')">Access</div>
-                    <div class="cube-face bottom" onclick="setRegCat('Other')">Other</div>
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:6px; text-align:left;">Issue Category — rotate the cube and click a face</p>
+                <div class="scene">
+                    <div class="cube" id="applyCube">
+                        <div class="cube-face front"  onclick="setRegCat('Hardware')">Hardware</div>
+                        <div class="cube-face back"   onclick="setRegCat('Software')">Software</div>
+                        <div class="cube-face right"  onclick="setRegCat('Network')">Network</div>
+                        <div class="cube-face left"   onclick="setRegCat('Account')">Account</div>
+                        <div class="cube-face top"    onclick="setRegCat('Access')">Access</div>
+                        <div class="cube-face bottom" onclick="setRegCat('Other')">Other</div>
+                    </div>
                 </div>
+                <p style="text-align:center; margin-bottom:6px; font-size:0.88rem;">
+                    Selected: <strong id="applySelectedCat" style="color:var(--accent);">Hardware</strong>
+                </p>
+                <div style="display:flex; gap:8px; justify-content:center; margin-bottom:18px;">
+                    <button class="btn-outline" style="padding:7px 18px;" onclick="rotateRegCube(-1)">&#8592; Left</button>
+                    <button class="btn-outline" style="padding:7px 18px;" onclick="rotateRegCube(1)">Right &#8594;</button>
+                </div>
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Issue Subject *</p>
+                <input type="text" id="applySubject" placeholder="Brief one-line description of your problem">
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Additional Details</p>
+                <textarea id="applyDesc" rows="3" placeholder="Any extra context that will help the agent..."></textarea>
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Attach File (Screenshot/Logs)</p>
+                <input type="file" id="applyFile" style="padding: 8px;">
+
+                <button class="btn-primary" style="width:100%; font-size:0.98rem; padding:13px;" onclick="submitApplication()">
+                    <i class="fas fa-paper-plane"></i>&nbsp; Submit Application
+                </button>
             </div>
-            <p style="text-align:center; margin-bottom:6px; font-size:0.88rem;">
-                Selected: <strong id="applySelectedCat" style="color:var(--accent);">Hardware</strong>
-            </p>
-            <div style="display:flex; gap:8px; justify-content:center; margin-bottom:18px;">
-                <button class="btn-outline" style="padding:7px 18px;" onclick="rotateRegCube(-1)">&#8592; Left</button>
-                <button class="btn-outline" style="padding:7px 18px;" onclick="rotateRegCube(1)">Right &#8594;</button>
-            </div>
-
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Issue Subject *</p>
-            <input type="text" id="applySubject" placeholder="Brief one-line description of your problem">
-
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Additional Details</p>
-            <textarea id="applyDesc" rows="3" placeholder="Any extra context that will help the agent..."></textarea>
-
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Attach File (Screenshot/Logs)</p>
-            <input type="file" id="applyFile" style="padding: 8px;">
-
-            <button class="btn-primary" style="width:100%; font-size:0.98rem; padding:13px;" onclick="submitApplication()">
-                <i class="fas fa-paper-plane"></i>&nbsp; Submit Application
-            </button>
             <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="router('login')">Cancel</button>
         </div>
     </div>
@@ -470,25 +476,27 @@
             <h2 style="margin-bottom:5px;"><i class="fas fa-user-plus"></i> Internal Registration</h2>
             <p style="color:var(--text-dim); font-size:0.88rem; margin-bottom:22px;">Create an account for staff or administration access.</p>
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">User Category *</p>
-            <select id="regRole">
-                <option value="User">General User</option>
-                <option value="Team Agent">Team Agent</option>
-                <option value="Admin">Administrator</option>
-            </select>
+            <div class="customer-login-box">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">User Category *</p>
+                <select id="regRole">
+                    <option value="User">General User</option>
+                    <option value="Team Agent">Team Agent</option>
+                    <!-- Admin role removed from public signup for security -->
+                </select>
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Full Name *</p>
-            <input type="text"  id="regName" placeholder="Full Name">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Full Name *</p>
+                <input type="text"  id="regName" placeholder="Full Name">
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Email Address *</p>
-            <input type="email" id="regEmail" placeholder="Email">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Email Address *</p>
+                <input type="email" id="regEmail" placeholder="Email">
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Password *</p>
-            <input type="password" id="regPass" placeholder="••••••••">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Password *</p>
+                <input type="password" id="regPass" placeholder="••••••••">
 
-            <button class="btn-primary" style="width:100%; font-size:0.98rem; padding:13px;" onclick="unifiedRegister()">
-                <i class="fas fa-check-circle"></i>&nbsp; Create Account
-            </button>
+                <button class="btn-primary" style="width:100%; font-size:0.98rem; padding:13px;" onclick="unifiedRegister()">
+                    <i class="fas fa-check-circle"></i>&nbsp; Create Account
+                </button>
+            </div>
             <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="router('login')">Cancel</button>
         </div>
     </div>
@@ -564,7 +572,7 @@
             </table>
         </div>
 
-        <div class="glass-panel profile-card">
+        <div class="customer-login-box">
             <h3><i class="fas fa-id-card"></i> My Contact Info</h3>
             <p style="color:var(--text-dim); margin-bottom:15px; font-size:0.85rem;">This info is visible to customers on their tickets.</p>
             <label>Display Name</label>
@@ -864,20 +872,8 @@ async function loadSystemData() {
         // Initial Routing Logic
         const lastView = localStorage.getItem('lastView');
         if (state.currentUser) {
-            // If logged in and on a public page, go to dashboard
-            if (!state.currentView || state.currentView === 'home' || state.currentView === 'login' || state.currentView === 'register') {
-                if (lastView && lastView !== 'login' && lastView !== 'register') {
-                    router(lastView);
-                } else {
-                    // Default role-based routing
-                    if (state.currentUser.role === 'Admin') router('admin-dashboard');
-                    else if (state.currentUser.role === 'Team Agent') router('agent-dashboard');
-                    else if (state.currentUser.role === 'User') router('home');
-                    else router('customer-status');
-                }
-            } else {
-                router(state.currentView);
-            }
+            // Role-based classification routing
+            redirectByUserRole(state.currentUser);
         } else {
             // Not logged in
             if (!state.currentView) router('home');
@@ -945,6 +941,17 @@ function router(view) {
     const adminViews = ['admin-dashboard', 'customer-management'];
     const agentViews = ['agent-dashboard', 'applications-queue'];
     const dashboardViews = [...adminViews, ...agentViews, 'customer-status'];
+
+    // SECURITY: Only the primary admin or promoted admins can access user management
+    const primaryAdminEmail = 'admin@inkomane.com';
+
+    if (view === 'customer-management') {
+        if (!state.currentUser || state.currentUser.role !== 'Admin') {
+            showToast('Access Denied: Only a verified Administrator can manage users.');
+            router('admin-dashboard');
+            return;
+        }
+    }
 
     if (adminViews.includes(view)) {
         if (!state.currentUser || state.currentUser.role !== 'Admin') {
@@ -1042,30 +1049,83 @@ function updateNav() {
 
 
 // ──────────────────────────────────────────────
-// AUTH — ALL THREE ROLES
+// AUTH — ROLE CLASSIFICATION & REDIRECTION
 // ──────────────────────────────────────────────
+function redirectByUserRole(user) {
+    if (!user) return router('login');
+    
+    // Persistent View Logic: Check if they have a saved 'current' page for their role
+    const lastView = localStorage.getItem('lastView');
+    const adminViews = ['admin-dashboard', 'customer-management'];
+    const agentViews = ['agent-dashboard', 'applications-queue'];
+    
+    if (user.role === 'Admin') {
+        if (adminViews.includes(lastView)) router(lastView);
+        else router('admin-dashboard');
+    } 
+    else if (user.role === 'Team Agent') {
+        if (agentViews.includes(lastView)) router(lastView);
+        else router('agent-dashboard');
+    }
+    else if (user.role === 'User') {
+        router('home');
+    }
+    else {
+        // Customer
+        router('customer-status');
+    }
+}
+
+async function handleAuthResponse(data) {
+    if (data.success) {
+        state.currentUser = data.user;
+        await loadSystemData(); // Sync full state
+        showToast(`Logged in as ${data.user.role}: ${data.user.name}`);
+        redirectByUserRole(data.user);
+    } else {
+        showToast(data.message);
+    }
+}
+
+async function loginCustomer() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    if (!email || !password) return showToast('Please enter credentials');
+
+    const data = await api('login', 'POST', { email, password });
+    handleAuthResponse(data);
+    
+    if (data.success) {
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPass').value = '';
+    }
+}
+
+async function loginAgent() {
+    const email = document.getElementById('agentEmail').value.trim();
+    const password = document.getElementById('agentPass').value;
+    if (!email || !password) return showToast('Please enter agent credentials');
+
+    const data = await api('login', 'POST', { email, password });
+    handleAuthResponse(data);
+    
+    if (data.success) {
+        document.getElementById('agentEmail').value = '';
+        document.getElementById('agentPass').value = '';
+    }
+}
+
 async function unifiedLogin() {
     const email = document.getElementById('uniEmail').value.trim();
     const password = document.getElementById('uniPass').value;
     if (!email || !password) return showToast('Please enter both email and password');
 
     const data = await api('login', 'POST', { email, password });
+    handleAuthResponse(data);
 
     if (data.success) {
-        state.currentUser = data.user;
-        await loadSystemData();
-        showToast('Welcome, ' + data.user.name + '!');
-        
-        // Dynamic redirection based on role
-        if (data.user.role === 'Admin') router('admin-dashboard');
-        else if (data.user.role === 'Team Agent') router('agent-dashboard');
-        else if (data.user.role === 'User') router('home');
-        else router('customer-status');
-        
         document.getElementById('uniEmail').value = '';
         document.getElementById('uniPass').value = '';
-    } else {
-        showToast(data.message);
     }
 }
 
@@ -1076,6 +1136,9 @@ async function unifiedRegister() {
     const password = document.getElementById('regPass').value;
 
     if (!name || !email || !password) return showToast('Fill all required fields');
+    
+    // Safety check: Don't allow public registration of Admins
+    if (role === 'Admin') return showToast('Unauthorized: Admins cannot be created via public registration.');
 
     const res = await api('register', 'POST', { name, email, password, role });
     if (res.success) {
