@@ -207,25 +207,16 @@
         .modal-content label { font-size: 0.84rem; color: var(--text-dim); display: block; margin-bottom: 2px; }
 
         footer { 
-            background: rgba(10,15,30,0.85); 
-            backdrop-filter: blur(20px);
+            background: rgba(10,15,30,0.9); 
+            backdrop-filter: blur(25px);
             border-top: 1px solid var(--glass-border); 
-            padding: 55px 5% 20px;
+            padding: 60px 5% 30px;
             width: 100%;
-            transition: 0.3s;
             position: relative;
             z-index: 900;
+            clear: both;
         }
-        body.with-sidebar footer {
-            padding-left: calc(260px + 5%);
-        }
-        @media (max-width: 1100px) {
-            body.with-sidebar footer { padding-left: calc(80px + 5%); }
-        }
-        @media (max-width: 900px) {
-            body.with-sidebar footer { padding-left: 5%; }
-        }
-        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 28px; margin-bottom: 36px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 40px; margin-bottom: 40px; }
         .footer-col h3 { color: var(--accent); margin-bottom: 18px; font-size: 1rem; }
         .footer-col p, .footer-col li { color: var(--text-dim); line-height: 1.8; font-size: 0.88rem; }
         .footer-col ul { list-style: none; }
@@ -475,12 +466,61 @@
             <p style="font-size:0.85rem; color:var(--text-dim);">
                 New here? <a href="#" onclick="router('apply')" style="color:var(--accent); font-weight:600;">Apply for Support →</a>
             </p>
+            <p style="font-size:0.85rem; color:var(--text-dim); margin-top: 10px;">
+                Forgot password? <a href="#" onclick="router('forgot-password')" style="color:var(--secondary);">Reset it here</a>
+            </p>
             <p style="font-size:0.82rem; color:var(--text-dim); margin-top: 10px;">
                 Internal Staff? <a href="#" onclick="router('register')" style="color:var(--secondary);">Create Internal Account</a>
             </p>
         </div>
     </div>
 </section>
+
+<!-- ═══════════════ FORGOT PASSWORD ═══════════════ -->
+<section id="forgot-password" class="view-section">
+    <div class="center-box">
+        <div class="glass-panel" style="text-align:center;">
+            <h2 style="margin-bottom:10px;"><i class="fas fa-key"></i> Forgot Password</h2>
+            <p style="color:var(--text-dim); margin-bottom:26px; font-size:0.9rem;">Enter your email to receive a password reset token.</p>
+
+            <div class="customer-login-box">
+                <label style="font-size:0.82rem; color:var(--text-dim);">Email Address</label>
+                <input type="email" id="forgotEmail" placeholder="e.g. alice@example.com">
+
+                <button class="btn-primary" style="width:100%; padding: 15px; font-size: 1rem; margin-top: 10px;" onclick="requestReset()">
+                    <i class="fas fa-paper-plane"></i> Send Reset Link
+                </button>
+            </div>
+
+            <p style="font-size:0.85rem; color:var(--text-dim);">
+                Remembered it? <a href="#" onclick="router('login')" style="color:var(--accent); font-weight:600;">Back to Login</a>
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════ RESET PASSWORD ═══════════════ -->
+<section id="reset-password" class="view-section">
+    <div class="center-box">
+        <div class="glass-panel" style="text-align:center;">
+            <h2 style="margin-bottom:10px;"><i class="fas fa-lock-open"></i> Reset Password</h2>
+            <p style="color:var(--text-dim); margin-bottom:26px; font-size:0.9rem;">Enter your new password and the token you received.</p>
+
+            <div class="customer-login-box">
+                <label style="font-size:0.82rem; color:var(--text-dim);">Token</label>
+                <input type="text" id="resetToken" placeholder="Paste your token here">
+                
+                <label style="font-size:0.82rem; color:var(--text-dim);">New Password</label>
+                <input type="password" id="resetPass" placeholder="••••••••">
+
+                <button class="btn-primary" style="width:100%; padding: 15px; font-size: 1rem; margin-top: 10px;" onclick="resetPassword()">
+                    <i class="fas fa-check-circle"></i> Update Password
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
 
 <!-- ═══════════════ APPLY FOR SUPPORT (CUSTOMER ONLY) ═══════════════ -->
 <section id="apply" class="view-section">
@@ -621,45 +661,153 @@
     </div>
 </section>
 
-<!-- ═══════════════ ADMIN DASHBOARD (STATISTICS) ═══════════════ -->
+<!-- ═══════════════ ADMIN DASHBOARD (REDESIGN) ═══════════════ -->
 <section id="admin-dashboard" class="view-section">
-    <div class="dashboard-header">
-        <h1><i class="fas fa-chart-pie"></i> System Statistics</h1>
-        <div class="customer-actions">
-            <button class="btn-primary" onclick="loadSystemData()"><i class="fas fa-sync-alt"></i> Refresh Stats</button>
+    <div class="dashboard-header" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+        <div>
+            <h1 style="font-size: 1.8rem; margin: 0;">Dashboard</h1>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Plan, prioritize, and accomplish your tasks with ease.</p>
+        </div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <div style="position: relative;">
+                <input type="text" placeholder="Search task..." style="margin: 0; padding: 10px 15px 10px 40px; border-radius: 20px; width: 250px; background: rgba(255,255,255,0.1);">
+                <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+            </div>
+            <button class="btn-primary" style="background: #1e5128; color: white; border-radius: 20px;"><i class="fas fa-plus"></i> Add Project</button>
+            <button class="btn-outline" style="border-radius: 20px; color: white; border-color: rgba(255,255,255,0.3);">Import Data</button>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-num" id="statUsers">0</div>
-            <div style="color:var(--text-dim); font-size:0.9rem;">Total Users</div>
+    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="stat-card" style="background: #1e5128; color: white; text-align: left; position: relative;">
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">Total Projects</p>
+            <div class="stat-num" id="statTickets" style="color: white;">24</div>
+            <p style="font-size: 0.75rem; opacity: 0.8;"><i class="fas fa-arrow-up"></i> Increased from last month</p>
+            <i class="fas fa-arrow-right" style="position: absolute; top: 20px; right: 20px; transform: rotate(-45deg); opacity: 0.6;"></i>
         </div>
-        <div class="stat-card">
-            <div class="stat-num" id="statTickets">0</div>
-            <div style="color:var(--text-dim); font-size:0.9rem;">Total Tickets</div>
+        <div class="stat-card" style="background: rgba(255,255,255,0.05); text-align: left; position: relative;">
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">Ended Projects</p>
+            <div class="stat-num" id="statConfirmed" style="color: white;">10</div>
+            <p style="font-size: 0.75rem; color: var(--text-dim);"><i class="fas fa-arrow-up"></i> Increased from last month</p>
+            <i class="fas fa-arrow-right" style="position: absolute; top: 20px; right: 20px; transform: rotate(-45deg); opacity: 0.6;"></i>
         </div>
-        <div class="stat-card">
-            <div class="stat-num" id="statPending">0</div>
-            <div style="color:var(--text-dim); font-size:0.9rem;">Pending Apps</div>
+        <div class="stat-card" style="background: rgba(255,255,255,0.05); text-align: left; position: relative;">
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">Running Projects</p>
+            <div class="stat-num" id="statPending" style="color: white;">12</div>
+            <p style="font-size: 0.75rem; color: var(--text-dim);"><i class="fas fa-arrow-up"></i> Increased from last month</p>
+            <i class="fas fa-arrow-right" style="position: absolute; top: 20px; right: 20px; transform: rotate(-45deg); opacity: 0.6;"></i>
         </div>
-        <div class="stat-card">
-            <div class="stat-num" id="statConfirmed">0</div>
-            <div style="color:var(--text-dim); font-size:0.9rem;">Confirmed Apps</div>
+        <div class="stat-card" style="background: rgba(255,255,255,0.05); text-align: left; position: relative;">
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">Pending Project</p>
+            <div class="stat-num" id="statUsers" style="color: white;">2</div>
+            <p style="font-size: 0.75rem; color: var(--text-dim);">On Discuss</p>
+            <i class="fas fa-arrow-right" style="position: absolute; top: 20px; right: 20px; transform: rotate(-45deg); opacity: 0.6;"></i>
         </div>
     </div>
 
-    <div class="glass-panel" style="margin-bottom: 30px;">
-        <h3 style="margin-bottom: 10px;"><i class="fas fa-layer-group"></i> Category Distribution Analysis</h3>
-        <p style="color:var(--text-dim); margin-bottom:40px; font-size:0.85rem;">Comparison of support requests across modern working categories.</p>
-        <div class="chart-box" id="categoryChart" style="margin-bottom: 20px; min-height: 350px;">
-            <!-- Vertical bars will be injected here -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px;">
+        <!-- Left Column -->
+        <div style="display: flex; flex-direction: column; gap: 25px;">
+            <div class="glass-panel" style="margin: 0; padding: 20px;">
+                <h3 style="margin-bottom: 20px;">Project Analytics</h3>
+                <div class="chart-box" id="categoryChart" style="height: 200px;"></div>
+            </div>
+            
+            <div class="glass-panel" style="margin: 0; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>Team Collaboration</h3>
+                    <button class="btn-outline" style="border-radius: 20px; font-size: 0.8rem; padding: 5px 15px;">+ Add Member</button>
+                </div>
+                <div id="teamCollaborationList">
+                    <!-- Sample from wireframe -->
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <img src="https://ui-avatars.com/api/?name=Alexandra+Deff&background=random" style="width: 35px; height: 35px; border-radius: 50%;">
+                        <div style="flex: 1;">
+                            <p style="margin: 0; font-size: 0.9rem; font-weight: 500;">Alexandra Deff</p>
+                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-dim);">Working on Github Project Repository</p>
+                        </div>
+                        <span style="background: rgba(46,204,113,0.2); color: var(--success); font-size: 0.7rem; padding: 3px 10px; border-radius: 10px;">Completed</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <img src="https://ui-avatars.com/api/?name=Edwin+Adenike&background=random" style="width: 35px; height: 35px; border-radius: 50%;">
+                        <div style="flex: 1;">
+                            <p style="margin: 0; font-size: 0.9rem; font-weight: 500;">Edwin Adenike</p>
+                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-dim);">Working on Integrate User Authentication System</p>
+                        </div>
+                        <span style="background: rgba(241,196,15,0.2); color: var(--warning); font-size: 0.7rem; padding: 3px 10px; border-radius: 10px;">In Progress</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display: flex; flex-direction: column; gap: 25px;">
+            <div class="glass-panel" style="margin: 0; padding: 20px; background: rgba(255,255,255,0.08);">
+                <h3 style="margin-bottom: 15px;">Reminders</h3>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <h4 style="color: var(--success); margin-bottom: 5px;">Meeting with Arc Company</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-dim);"><i class="far fa-clock"></i> Time: 02:00 pm - 04:00 pm</p>
+                    <button class="btn-primary" style="background: #1e5128; width: 100%; margin-top: 15px;"><i class="fas fa-video"></i> Start Meeting</button>
+                </div>
+            </div>
+
+            <div class="glass-panel" style="margin: 0; padding: 20px;">
+                <h3 style="margin-bottom: 15px;">Project Progress</h3>
+                <div style="text-align: center; position: relative; height: 180px; display: flex; align-items: center; justify-content: center;">
+                     <!-- Circular progress mockup -->
+                     <svg width="150" height="150" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10" />
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#1e5128" stroke-width="10" stroke-dasharray="282.7" stroke-dashoffset="166.8" stroke-linecap="round" />
+                        <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="20" font-weight="bold">41%</text>
+                        <text x="50" y="65" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.6)" font-size="8">Project Ended</text>
+                     </svg>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-top: 10px;">
+                    <span><i class="fas fa-circle" style="color: #1e5128;"></i> Completed</span>
+                    <span><i class="fas fa-circle" style="color: var(--accent);"></i> In Progress</span>
+                    <span><i class="fas fa-circle" style="color: var(--text-dim);"></i> Pending</span>
+                </div>
+            </div>
+
+            <div class="glass-panel" style="margin: 0; padding: 20px; background: #000;">
+                <h3 style="margin-bottom: 15px;">Time Tracker</h3>
+                <div style="text-align: center; padding: 10px;">
+                    <div style="font-size: 2.2rem; font-weight: bold; font-family: monospace; letter-spacing: 2px;">01:24:08</div>
+                    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">
+                        <button style="background: white; color: black; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-pause"></i></button>
+                        <button style="background: var(--danger); color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-stop"></i></button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="glass-panel">
+    <!-- User Assignment Activity Illustration -->
+    <div class="glass-panel" style="margin-top: 25px; padding: 20px;">
+        <h3 style="margin-bottom: 20px;"><i class="fas fa-user-check"></i> System User Assignments & Activity</h3>
+        <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px;">Real-time illustration of users being assigned roles and system access.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;" id="assignmentLog">
+            <!-- Dynamic content -->
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; display: flex; align-items: center; gap: 15px;">
+                <div style="background: var(--accent); width: 10px; height: 10px; border-radius: 50%;"></div>
+                <div>
+                    <p style="margin: 0; font-size: 0.9rem;"><strong>Admin</strong> assigned <strong>John Doe</strong> to <strong>Technical Support</strong></p>
+                    <p style="margin: 0; font-size: 0.75rem; color: var(--text-dim);">Just now</p>
+                </div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; display: flex; align-items: center; gap: 15px;">
+                <div style="background: var(--success); width: 10px; height: 10px; border-radius: 50%;"></div>
+                <div>
+                    <p style="margin: 0; font-size: 0.9rem;"><strong>Alice Smith</strong>'s password was changed successfully</p>
+                    <p style="margin: 0; font-size: 0.75rem; color: var(--text-dim);">5 mins ago</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel" style="margin-top: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3><i class="fas fa-history"></i> Recent System Activity</h3>
+            <h3><i class="fas fa-history"></i> Recent Ticket Activity</h3>
             <button class="btn-configure" onclick="router('customer-management')">View All Users <i class="fas fa-arrow-right"></i></button>
         </div>
         <table id="adminTicketTable">
@@ -678,6 +826,7 @@
         </table>
     </div>
 </section>
+
 
 
 
@@ -786,7 +935,7 @@
     </div>
 </section>
 
-</main>
+</div> <!-- End main-content -->
 
 <!-- MODAL: Add / Edit User -->
 <div id="userModal" class="modal">
@@ -903,49 +1052,10 @@
     </div>
 </div>
 
-<!-- Footer -->
-<footer>
-    <div class="footer-grid">
-        <div class="footer-col">
-            <h3>INKOMANE</h3>
-            <p>Advanced customer support ticketing system with interactive 3D tools and real-time analytics.</p>
-            <div class="social-icons" style="margin-top:14px;">
-                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                <a href="https://twitter.com"  target="_blank"><i class="fab fa-twitter"></i></a>
-                <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
-            </div>
-        </div>
-        <div class="footer-col">
-            <h3>Quick Links</h3>
-            <ul>
-                <li><a href="#" onclick="router('home')">Home</a></li>
-                <li><a href="#" onclick="router('docs')">Documentation</a></li>
-                <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Terms of Service</a></li>
-            </ul>
-        </div>
-        <div class="footer-col">
-            <h3>Contact Us</h3>
-            <p><i class="fas fa-map-marker-alt"></i> 123 Innovation Dr, Tech City</p>
-            <p><i class="fas fa-envelope"></i> support@inkomane.com</p>
-            <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
-        </div>
-        <div class="footer-col">
-            <h3>Locate Us</h3>
-         <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3525.3699972122804!2d30.094612574365634!3d-1.9708071367561184!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca70046d8c8e9%3A0xbf7e6f38dd3d9b3c!2sGoodLink%20Solutions%20-%20INKOMANE!5e1!3m2!1sen!2srw!4v1776849198885!5m2!1sen!2srw" class="map-frame"  width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-    </div>
-    <div class="footer-bottom">&copy; 2026 INKOMANE Project. All Rights Reserved.</div>
-</footer>
-
 <div id="toast">Message</div>
 
 <script>
 // ──────────────────────────────────────────────
-// DOCS DATA
-// ──────────────────────────────────────────────
-
-    // ──────────────────────────────────────────────
 // DOCS DATA
 // ──────────────────────────────────────────────
 const docsData = {
@@ -1133,10 +1243,13 @@ function router(view) {
     if (view === 'applications-queue')  renderAppsTable();
     if (view === 'customer-status')     renderCustomerStatus();
     if (view === 'agent-dashboard')     renderAgentDashboard();
+    if (view === 'forgot-password')     { /* no special load needed */ }
+    if (view === 'reset-password')      { /* no special load needed */ }
     
     // Scroll to top
     window.scrollTo(0, 0);
 }
+
 
 function updateNav() {
     const topNav = document.getElementById('topNavLinks');
@@ -1408,6 +1521,39 @@ async function logout() {
     router('home');
 }
 
+// ── FORGOT PASSWORD ──
+async function requestReset() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    if (!email) return showToast('Please enter your email');
+
+    const res = await api('forgot_password', 'POST', { email });
+    if (res.success) {
+        // In a real app, you wouldn't show the token, but for this demo:
+        alert("Reset Token (usually sent via email): " + res.token);
+        showToast('Reset token generated! Use it on the reset page.');
+        router('reset-password');
+    } else {
+        showToast(res.message);
+    }
+}
+
+async function resetPassword() {
+    const token = document.getElementById('resetToken').value.trim();
+    const email = document.getElementById('forgotEmail').value.trim(); // Still using forgotEmail value
+    const password = document.getElementById('resetPass').value;
+
+    if (!token || !password) return showToast('Please fill all fields');
+
+    const res = await api('reset_password', 'POST', { email, token, password });
+    if (res.success) {
+        showToast('Password reset successfully! Please login.');
+        router('login');
+    } else {
+        showToast(res.message);
+    }
+}
+
+
 // ──────────────────────────────────────────────
 // REGISTER / APPLY
 // ──────────────────────────────────────────────
@@ -1614,7 +1760,49 @@ function syncDashboard() {
     
     renderCategoryStats();
     renderAdminTicketTable();
+    renderAssignmentLog();
 }
+
+function renderAssignmentLog() {
+    const logEl = document.getElementById('assignmentLog');
+    if (!logEl) return;
+
+    let activities = [];
+    
+    // Most recent tickets
+    state.tickets.slice(0, 3).forEach(t => {
+        activities.push({
+            msg: `<strong>System</strong> assigned <strong>${t.applicant_email.split('@')[0]}</strong> to <strong>${t.assigned_to}</strong>`,
+            time: 'Recently',
+            color: 'var(--accent)'
+        });
+    });
+
+    // Most recent users
+    state.users.slice(0, 2).forEach(u => {
+        activities.push({
+            msg: `User <strong>${u.name}</strong> has accessed the system`,
+            time: 'Active',
+            color: 'var(--success)'
+        });
+    });
+
+    if (activities.length === 0) {
+        logEl.innerHTML = '<div class="empty-state">No recent activity detected.</div>';
+        return;
+    }
+
+    logEl.innerHTML = activities.map(a => `
+        <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; display: flex; align-items: center; gap: 15px; animation: fadeIn 0.5s;">
+            <div style="background: ${a.color}; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 10px ${a.color};"></div>
+            <div>
+                <p style="margin: 0; font-size: 0.9rem;">${a.msg}</p>
+                <p style="margin: 0; font-size: 0.75rem; color: var(--text-dim);">${a.time}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
 
 function renderCategoryStats() {
     const container = document.getElementById('categoryChart');
@@ -2051,36 +2239,48 @@ updateNav();
 toggleRegFields();
 </script>
 
+</div> <!-- End main-content -->
 
 <footer>
     <div class="footer-grid">
         <div class="footer-col">
-            <h3>INKOMANE</h3>
-            <p>Advanced support solutions for modern enterprises. Empowing teams through AI and automated ticketing.</p>
+            <h3><i class="fas fa-cube" style="color:var(--accent)"></i> INKOMANE</h3>
+            <p>Advanced support solutions for modern enterprises. Empowering teams through AI-driven automation and seamless ticketing workflows.</p>
+            <div class="social-icons" style="margin-top:20px;">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
         </div>
         <div class="footer-col">
-            <h3>Services</h3>
+            <h3>Core Services</h3>
             <ul style="list-style:none; padding:0;">
-                <li>Cloud Infrastructure</li>
-                <li>Cybersecurity Audit</li>
-                <li>AI Integration</li>
+                <li><a href="#">Cloud Infrastructure</a></li>
+                <li><a href="#">Cybersecurity Audit</a></li>
+                <li><a href="#">AI & Automation</a></li>
+                <li><a href="#">Data Analytics</a></li>
             </ul>
         </div>
         <div class="footer-col">
-            <h3>Support</h3>
+            <h3>Resources</h3>
             <ul style="list-style:none; padding:0;">
-                <li>Documentation</li>
-                <li>Help Center</li>
-                <li>Community</li>
+                <li><a href="#" onclick="router('docs')">Documentation</a></li>
+                <li><a href="#">Help Center</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
             </ul>
+        </div>
+        <div class="footer-col">
+            <h3>Contact Us</h3>
+            <p><i class="fas fa-map-marker-alt" style="color:var(--accent)"></i> 123 Tech Avenue, Silicon Valley</p>
+            <p><i class="fas fa-phone" style="color:var(--accent)"></i> +1 (555) 000-1234</p>
+            <p><i class="fas fa-envelope" style="color:var(--accent)"></i> support@inkomane.com</p>
         </div>
     </div>
-    <div style="text-align:center; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); font-size:0.8rem; color:var(--text-dim);">
-        &copy; 2026 INKOMANE. All Rights Reserved.
+    <div class="footer-bottom">
+        &copy; 2026 INKOMANE | Advanced Support Ecosystem. All Rights Reserved.
     </div>
 </footer>
-
-</main> <!-- End main-content -->
 
 </body>
 </html>

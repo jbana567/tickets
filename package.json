@@ -1,6 +1,4 @@
 {
-    "name": "inkomane",
-    "version": "1.0.0",
     "private": true,
     "type": "module",
     "scripts": {
@@ -10,6 +8,6 @@
     "devDependencies": {
         "axios": "^1.6.4",
         "laravel-vite-plugin": "^1.0.0",
-        "vite": "^8.0.9"
+        "vite": "^5.0.0"
     }
 }

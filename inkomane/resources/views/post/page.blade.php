@@ -48,7 +48,7 @@
             padding: 25px;
             margin-bottom: 25px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            overflow-x: auto; /* Allow horizontal scroll for wide tables */
+            /* Removed overflow-x: auto to eliminate scrollbars */
         }
         .glass-panel::-webkit-scrollbar { height: 6px; }
         .glass-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
@@ -182,12 +182,16 @@
         .admin-layout { display: grid; grid-template-columns: 2.2fr 1fr; gap: 24px; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; } .doc-container { grid-template-columns: 1fr; } }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: auto; }
-        th { text-align: left; padding: 12px 10px; border-bottom: 2px solid var(--glass-border); color: var(--accent); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
-        td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.88rem; white-space: nowrap; }
-        td b { white-space: normal; } /* Allow names to wrap if needed */
-        td .category-tag { white-space: nowrap; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; } /* Fixed layout to prevent overflow */
+        th { text-align: left; padding: 12px 10px; border-bottom: 2px solid var(--glass-border); color: var(--accent); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        td b { white-space: normal; } 
         tr:hover { background: rgba(255,255,255,0.04); }
+        
+        /* Specific column widths for better organization */
+        .col-id { width: 60px; }
+        .col-status { width: 120px; }
+        .col-actions { width: 100px; }
 
         .chart-box { height: 300px; display: flex; align-items: flex-end; justify-content: space-around; padding-top: 40px; border-bottom: 2px solid var(--glass-border); }
         .bar { width: 50px; background: linear-gradient(to top, var(--primary), var(--accent)); border-radius: 8px 8px 0 0; position: relative; box-shadow: 0 0 15px rgba(78,84,200,0.5); }
@@ -202,7 +206,25 @@
         .close:hover { color: var(--danger); }
         .modal-content label { font-size: 0.84rem; color: var(--text-dim); display: block; margin-bottom: 2px; }
 
-        footer { margin-top: auto; background: rgba(0,0,0,0.4); border-top: 1px solid var(--glass-border); padding: 55px 5% 20px; }
+        footer { 
+            background: rgba(10,15,30,0.85); 
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border); 
+            padding: 55px 5% 20px;
+            width: 100%;
+            transition: 0.3s;
+            position: relative;
+            z-index: 900;
+        }
+        body.with-sidebar footer {
+            padding-left: calc(260px + 5%);
+        }
+        @media (max-width: 1100px) {
+            body.with-sidebar footer { padding-left: calc(80px + 5%); }
+        }
+        @media (max-width: 900px) {
+            body.with-sidebar footer { padding-left: 5%; }
+        }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 28px; margin-bottom: 36px; }
         .footer-col h3 { color: var(--accent); margin-bottom: 18px; font-size: 1rem; }
         .footer-col p, .footer-col li { color: var(--text-dim); line-height: 1.8; font-size: 0.88rem; }
@@ -254,13 +276,26 @@
 
         /* ── Navigation Layouts ── */
         .top-navbar {
-            display: flex; justify-content: space-between; align-items: center;
             padding: 0 5%; background: rgba(10,15,30,0.85); backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 1100; height: 75px;
             width: 100%; transition: 0.3s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .btn-dashboard-highlight {
+            background: var(--accent) !important;
+            color: #000 !important;
+            font-weight: 700 !important;
+            padding: 10px 22px !important;
+            border-radius: 4px !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px var(--accent);
+            text-transform: uppercase;
+            font-size: 0.85rem !important;
         }
         .top-navbar .logo { font-size: 1.6rem; font-weight: 700; color: #fff; text-decoration: none; }
-        .top-navbar .nav-links { display: flex; flex-direction: row; gap: 25px; align-items: center; }
+        .top-navbar .nav-links { display: flex; flex-direction: row; gap: 35px; align-items: center; }
         .top-navbar .nav-links button { 
             background: none; color: #ccc; font-size: 0.95rem; font-weight: 500; padding: 5px 0;
             border-bottom: 2px solid transparent; border-radius: 0;
@@ -311,18 +346,46 @@
         .notif-item:hover { background: rgba(255,255,255,0.05); }
         .notif-item.unread { border-left: 3px solid var(--accent); background: rgba(0,210,255,0.03); }
         .notif-item i { margin-right: 8px; color: var(--accent); }
+
+        /* Role-specific Profile Styles */
+        .profile-bottom-sidebar {
+            margin-top: auto; padding: 20px 30px; border-top: 1px solid var(--glass-border);
+            display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s;
+        }
+        .profile-bottom-sidebar:hover { background: rgba(255,255,255,0.05); }
+        .profile-top-right {
+            display: flex; align-items: center; gap: 15px; background: rgba(15, 20, 35, 0.6);
+            padding: 8px 20px; border-radius: 40px; border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+        .dashboard-header-right {
+            position: absolute; top: 30px; right: 5%; display: flex; align-items: center; gap: 20px; z-index: 100;
+        }
     </style>
 </head>
 <body class="no-sidebar">
 
 <nav class="top-navbar" id="topNav">
     <div class="logo">INKOMANE</div>
-    <div class="nav-links" id="topNavLinks"></div>
+    <div class="nav-links" id="topNavLinks" style="display: flex; align-items: center; gap: 20px;"></div>
 </nav>
 
 <div class="sidebar" id="sideNav">
     <div class="logo">INKOMANE</div>
     <div class="nav-links" id="sideNavLinks"></div>
+    
+    <!-- User Profile (Bottom Left - Gemini Style for Customers) -->
+    <div id="sidebarProfile" class="profile-bottom-sidebar" style="display:none;" onclick="logout()">
+        <div style="width:38px; height:38px; border-radius:50%; background:linear-gradient(45deg, var(--primary), var(--accent)); display:flex; align-items:center; justify-content:center; color:white; font-size:1.2rem;">
+            <i class="fas fa-user"></i>
+        </div>
+        <div style="overflow:hidden;">
+            <p id="sidebarUserName" style="margin:0; font-weight:600; font-size:0.9rem; white-space:nowrap; text-overflow:ellipsis;"></p>
+            <p id="sidebarUserRole" style="margin:0; font-size:0.75rem; color:var(--text-dim);"></p>
+        </div>
+        <i class="fas fa-sign-out-alt" style="margin-left:auto; color:var(--danger); font-size:0.8rem; opacity:0.6;"></i>
+    </div>
+
     <div class="notif-sidebar" onclick="toggleNotifications()">
         <div id="notifDot" class="notif-dot"></div>
         <button style="background:none; border:none; color:var(--accent); cursor:pointer; display:flex; align-items:center; gap:10px; padding:0;">
@@ -338,6 +401,19 @@
 </div>
 
 <div class="main-content">
+    <!-- Header Right Profile (Top Right - ChatGPT Style for Admins/Agents) -->
+    <div id="headerProfile" class="dashboard-header-right" style="display:none;">
+        <div class="profile-top-right">
+            <div style="text-align:right;">
+                <p id="headerUserName" style="margin:0; font-weight:600; font-size:0.85rem; color:white;"></p>
+                <p id="headerUserRole" style="margin:0; font-size:0.7rem; color:var(--accent); font-weight:bold; text-transform:uppercase; letter-spacing:1px;"></p>
+            </div>
+            <div style="width:35px; height:35px; border-radius:50%; background:var(--glass-border); display:flex; align-items:center; justify-content:center; border:1px solid var(--accent);">
+                <i class="fas fa-user-shield" id="headerUserIcon"></i>
+            </div>
+            <button onclick="logout()" style="background:none; color:var(--danger); padding:5px; margin-left:5px;"><i class="fas fa-power-off"></i></button>
+        </div>
+    </div>
 
 <!-- ═══════════════ HOME ═══════════════ -->
 <section id="home" class="view-section active">
@@ -436,11 +512,11 @@
                 <div class="scene">
                     <div class="cube" id="applyCube">
                         <div class="cube-face front"  onclick="setRegCat('Hardware')">Hardware</div>
-                        <div class="cube-face back"   onclick="setRegCat('Software')">Software</div>
+                        <div class="cube-face back"   onclick="setRegCat('Cloud Services')">Cloud</div>
                         <div class="cube-face right"  onclick="setRegCat('Network')">Network</div>
-                        <div class="cube-face left"   onclick="setRegCat('Account')">Account</div>
-                        <div class="cube-face top"    onclick="setRegCat('Access')">Access</div>
-                        <div class="cube-face bottom" onclick="setRegCat('Other')">Other</div>
+                        <div class="cube-face left"   onclick="setRegCat('Cybersecurity')">Security</div>
+                        <div class="cube-face top"    onclick="setRegCat('AI & Automation')">AI / Auto</div>
+                        <div class="cube-face bottom" onclick="setRegCat('Data Analytics')">Data</div>
                     </div>
                 </div>
                 <p style="text-align:center; margin-bottom:6px; font-size:0.88rem;">
@@ -545,7 +621,65 @@
     </div>
 </section>
 
-<!-- Admin Overview and Old App Queue Removed -->
+<!-- ═══════════════ ADMIN DASHBOARD (STATISTICS) ═══════════════ -->
+<section id="admin-dashboard" class="view-section">
+    <div class="dashboard-header">
+        <h1><i class="fas fa-chart-pie"></i> System Statistics</h1>
+        <div class="customer-actions">
+            <button class="btn-primary" onclick="loadSystemData()"><i class="fas fa-sync-alt"></i> Refresh Stats</button>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-num" id="statUsers">0</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Total Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statTickets">0</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Total Tickets</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statPending">0</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Pending Apps</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statConfirmed">0</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Confirmed Apps</div>
+        </div>
+    </div>
+
+    <div class="glass-panel" style="margin-bottom: 30px;">
+        <h3 style="margin-bottom: 10px;"><i class="fas fa-layer-group"></i> Category Distribution Analysis</h3>
+        <p style="color:var(--text-dim); margin-bottom:40px; font-size:0.85rem;">Comparison of support requests across modern working categories.</p>
+        <div class="chart-box" id="categoryChart" style="margin-bottom: 20px; min-height: 350px;">
+            <!-- Vertical bars will be injected here -->
+        </div>
+    </div>
+
+    <div class="glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3><i class="fas fa-history"></i> Recent System Activity</h3>
+            <button class="btn-configure" onclick="router('customer-management')">View All Users <i class="fas fa-arrow-right"></i></button>
+        </div>
+        <table id="adminTicketTable">
+            <thead>
+                <tr>
+                    <th class="col-id">ID</th>
+                    <th>Subject & Details</th>
+                    <th>Assigned Agent</th>
+                    <th class="col-status">Priority</th>
+                    <th class="col-status">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
 
 <!-- ═══════════════ AGENT DASHBOARD ═══════════════ -->
 <section id="agent-dashboard" class="view-section">
@@ -596,8 +730,14 @@
         <table class="customer-table">
             <thead>
                 <tr>
-                    <th>Applicant</th><th>Email</th><th>Category</th>
-                    <th>Subject</th><th>Submitted</th><th>Status</th><th>Action</th>
+                    <th class="col-id">ID</th>
+                    <th>Applicant Name</th>
+                    <th>Contact Email</th>
+                    <th>Category</th>
+                    <th>Issue Subject</th>
+                    <th>Date Submitted</th>
+                    <th class="col-status">Current Status</th>
+                    <th class="col-actions">Actions</th>
                 </tr>
             </thead>
             <tbody id="appsTableBody"></tbody>
@@ -696,7 +836,11 @@
         <select id="ticketCategory">
             <option value="Hardware">Hardware</option>
             <option value="Software">Software</option>
+            <option value="Cloud Services">Cloud Services</option>
             <option value="Network">Network</option>
+            <option value="Cybersecurity">Cybersecurity</option>
+            <option value="AI & Automation">AI & Automation</option>
+            <option value="Data Analytics">Data Analytics</option>
             <option value="Account">Account</option>
             <option value="Billing">Billing</option>
         </select>
@@ -764,44 +908,34 @@
     <div class="footer-grid">
         <div class="footer-col">
             <h3>INKOMANE</h3>
-            <p>Advanced customer support ticketing system with interactive 3D tools and real-time analytics.</p>
-            <div class="social-icons" style="margin-top:14px;">
-                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                <a href="https://twitter.com"  target="_blank"><i class="fab fa-twitter"></i></a>
-                <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
-            </div>
+            <p>Advanced support solutions for modern enterprises. Empowing teams through AI and automated ticketing.</p>
         </div>
         <div class="footer-col">
-            <h3>Quick Links</h3>
-            <ul>
-                <li><a href="#" onclick="router('home')">Home</a></li>
-                <li><a href="#" onclick="router('docs')">Documentation</a></li>
-                <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Terms of Service</a></li>
+            <h3>Services</h3>
+            <ul style="list-style:none; padding:0;">
+                <li>Cloud Infrastructure</li>
+                <li>Cybersecurity Audit</li>
+                <li>AI Integration</li>
             </ul>
         </div>
         <div class="footer-col">
-            <h3>Contact Us</h3>
-            <p><i class="fas fa-map-marker-alt"></i> 123 Innovation Dr, Tech City</p>
-            <p><i class="fas fa-envelope"></i> support@inkomane.com</p>
-            <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+            <h3>Support</h3>
+            <ul style="list-style:none; padding:0;">
+                <li>Documentation</li>
+                <li>Help Center</li>
+                <li>Community</li>
+            </ul>
         </div>
-        <div class="footer-col">
-            <h3>Locate Us</h3>
-         <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3525.3699972122804!2d30.094612574365634!3d-1.9708071367561184!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca70046d8c8e9%3A0xbf7e6f38dd3d9b3c!2sGoodLink%20Solutions%20-%20INKOMANE!5e1!3m2!1sen!2srw!4v1776849198885!5m2!1sen!2srw" class="map-frame"  width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
-    <div class="footer-bottom">&copy; 2026 INKOMANE Project. All Rights Reserved.</div>
+    <div style="text-align:center; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); font-size:0.8rem; color:var(--text-dim);">
+        &copy; 2026 INKOMANE. All Rights Reserved.
+    </div>
 </footer>
 
 <div id="toast">Message</div>
 
 <script>
 // ──────────────────────────────────────────────
-// DOCS DATA
-// ──────────────────────────────────────────────
-
-    // ──────────────────────────────────────────────
 // DOCS DATA
 // ──────────────────────────────────────────────
 const docsData = {
@@ -1000,18 +1134,59 @@ function updateNav() {
     
     // 1. PUBLIC TOP NAV
     let publicLinks = `
-        <button onclick="router('home')">Home</button>
-        <button onclick="router('docs')">Docs</button>
-        <button onclick="router('apply')">Apply support</button>
-        <button onclick="router('login')" style="color:var(--accent); font-weight:600;">Login</button>
-        <button class="btn-primary" onclick="router('register')" style="padding:7px 20px; font-size:0.85rem; margin-left:10px;">Staff Signup</button>
+        <button onclick="router('home')"><i class="fas fa-home"></i> Home</button>
+        <button onclick="router('docs')"><i class="fas fa-book"></i> Docs</button>
+        <button onclick="router('apply')"><i class="fas fa-paper-plane"></i> Apply support</button>
     `;
+
+    if (state.currentUser) {
+        publicLinks += `
+            <button class="btn-dashboard-highlight" onclick="redirectByUserRole(state.currentUser)">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <div style="display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.05); padding:5px 15px; border-radius:30px; border:1px solid var(--glass-border);">
+                <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <span style="font-size:0.9rem; font-weight:500;">${state.currentUser.name.split(' ')[0]}</span>
+                <button onclick="logout()" style="margin:0; padding:0; color:var(--danger); font-size:0.8rem;"><i class="fas fa-power-off"></i></button>
+            </div>
+        `;
+    } else {
+        publicLinks += `
+            <button onclick="router('login')" style="color:var(--accent); font-weight:600;">Login</button>
+            <button class="btn-primary" onclick="router('register')" style="padding:7px 20px; font-size:0.85rem; margin-left:10px;">Staff Signup</button>
+        `;
+    }
+    
     if (topNav) topNav.innerHTML = publicLinks;
 
-    // 2. DASHBOARD SIDE NAV
-    if (!state.currentUser) {
-        if (sideNav) sideNav.innerHTML = '';
-        return;
+    // 2. DASHBOARD PROFILE PLACEMENT
+    const sidebarProfile = document.getElementById('sidebarProfile');
+    const headerProfile = document.getElementById('headerProfile');
+    
+    if (state.currentUser) {
+        if (state.currentUser.role === 'Admin' || state.currentUser.role === 'Team Agent') {
+            // ADMIN/AGENT: Bottom Left (Gemini Style)
+            if (sidebarProfile) {
+                sidebarProfile.style.display = 'flex';
+                document.getElementById('sidebarUserName').innerText = state.currentUser.name;
+                document.getElementById('sidebarUserRole').innerText = state.currentUser.role;
+            }
+            if (headerProfile) headerProfile.style.display = 'none';
+        } else {
+            // CUSTOMER: Top Right (ChatGPT Style)
+            if (headerProfile) {
+                headerProfile.style.display = 'flex';
+                document.getElementById('headerUserName').innerText = state.currentUser.name;
+                document.getElementById('headerUserRole').innerText = 'Verified Customer';
+                document.getElementById('headerUserIcon').className = 'fas fa-user';
+            }
+            if (sidebarProfile) sidebarProfile.style.display = 'none';
+        }
+    } else {
+        if (sidebarProfile) sidebarProfile.style.display = 'none';
+        if (headerProfile) headerProfile.style.display = 'none';
     }
 
     let sideLinks = `
@@ -1020,20 +1195,38 @@ function updateNav() {
     `;
     
     if (state.currentUser.role === 'Admin') {
-        sideLinks += `<button onclick="router('customer-management')" id="link-customer-management"><i class="fas fa-users-cog"></i> <span>User Management</span></button>`;
+        sideLinks = `
+            <button onclick="openCreateTicketModal()" style="margin: 0 15px 25px; background: rgba(0,210,255,0.1); border: 1px solid var(--accent); border-radius: 30px; padding: 12px 20px; justify-content: flex-start; gap: 15px; color: var(--accent);">
+                <i class="fas fa-plus"></i> <span>Create Ticket</span>
+            </button>
+            <button onclick="router('home')" id="link-home"><i class="fas fa-home"></i> <span>Home Portal</span></button>
+            <button onclick="router('admin-dashboard')" id="link-admin-dashboard"><i class="fas fa-chart-pie"></i> <span>Statistics</span></button>
+            <button onclick="router('customer-management')" id="link-customer-management"><i class="fas fa-users-cog"></i> <span>User Management</span></button>
+            <button onclick="router('docs')" id="link-docs"><i class="fas fa-book"></i> <span>Documentation</span></button>
+        `;
     } else if (state.currentUser.role === 'Team Agent') {
         const activeCount = state.tickets.filter(t => t.assigned_to === state.currentUser.name && t.status !== 'Resolved' && t.status !== 'Closed').length;
-        sideLinks += `
+        sideLinks = `
+            <button onclick="router('applications-queue')" style="margin: 0 15px 25px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 30px; padding: 12px 20px; justify-content: flex-start; gap: 15px;">
+                <i class="fas fa-clipboard-list" style="color: var(--accent);"></i> <span>Review Queue</span>
+            </button>
+            <button onclick="router('home')" id="link-home"><i class="fas fa-home"></i> <span>Home Portal</span></button>
             <button onclick="router('agent-dashboard')" id="link-agent-dashboard">
                 <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                 ${activeCount > 0 ? `<span class="notif-badge-sidebar" style="margin-left:auto; background:var(--accent);">${activeCount}</span>` : ''}
             </button>
-            <button onclick="router('applications-queue')" id="link-applications-queue"><i class="fas fa-clipboard-list"></i> <span>Applications</span></button>
+            <button onclick="router('docs')" id="link-docs"><i class="fas fa-book"></i> <span>Documentation</span></button>
         `;
     } else if (state.currentUser.role === 'User') {
         sideLinks += `<button onclick="router('home')" id="link-home-user"><i class="fas fa-user-circle"></i> <span>Staff Portal</span></button>`;
     } else {
-        sideLinks += `<button onclick="router('customer-status')" id="link-customer-status"><i class="fas fa-tasks"></i> <span>My Status</span></button>`;
+        // CUSTOMER - NO NEW CHAT BUTTON HERE (MOVED TO TOP RIGHT INSTEAD)
+        sideLinks = `
+            <button onclick="router('home')" id="link-home"><i class="fas fa-home"></i> <span>Home Portal</span></button>
+            <button onclick="router('customer-status')" id="link-customer-status"><i class="fas fa-tasks"></i> <span>My Status</span></button>
+            <button onclick="router('apply')" id="link-apply"><i class="fas fa-paper-plane"></i> <span>New Application</span></button>
+            <button onclick="router('docs')" id="link-docs"><i class="fas fa-book"></i> <span>Documentation</span></button>
+        `;
     }
     
     sideLinks += `<button onclick="logout()" style="color:var(--danger); margin-top:30px;"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>`;
@@ -1408,22 +1601,85 @@ function syncDashboard() {
     document.getElementById('statTickets').innerText   = state.tickets.length;
     document.getElementById('statPending').innerText   = state.applications.filter(a => a.status === 'pending').length;
     document.getElementById('statConfirmed').innerText = state.applications.filter(a => a.status === 'confirmed').length;
+    
+    renderCategoryStats();
     renderAdminTicketTable();
 }
 
-function renderAdminTicketTable() {
-    const tbody = document.querySelector('#adminTicketTable tbody');
-    if (!state.tickets.length) {
-        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>No tickets.</p></div></td></tr>';
-        return;
-    }
-    tbody.innerHTML = state.tickets.map(t => {
-        const sc = t.status === 'Open' ? 'var(--success)' : t.status === 'Resolved' ? 'var(--danger)' : 'var(--warning)';
-        const pc = t.priority === 'High' ? 'var(--danger)' : t.priority === 'Medium' ? 'var(--warning)' : 'var(--success)';
-        const fileIcon = t.file_path ? `<a href="/${t.file_path}" target="_blank" title="Download"><i class="fas fa-file-download" style="color:var(--accent)"></i></a>` : '';
-        return '<tr><td>#' + t.id + '</td><td>' + t.subject + ' ' + fileIcon + '</td><td style="color:var(--accent)">' + (t.assigned_to||'Unassigned') + '</td><td style="color:var(--text-dim)">' + (t.applicant_email||'—') + '</td><td style="color:' + pc + '">' + (t.priority||'') + '</td><td style="color:' + sc + '">' + (t.status||'') + '</td><td><button class="btn-configure" onclick="openTicketConfig(' + t.id + ')"><i class="fas fa-edit"></i> Edit</button></td></tr>';
+function renderCategoryStats() {
+    const container = document.getElementById('categoryChart');
+    if (!container) return;
+
+    const categories = ['Hardware', 'Software', 'Cloud Services', 'Network', 'Cybersecurity', 'AI & Automation', 'Data Analytics', 'Account', 'Access', 'Other'];
+    const stats = {};
+    categories.forEach(c => stats[c] = { total: 0, resolved: 0 });
+    
+    state.tickets.forEach(t => {
+        if (stats.hasOwnProperty(t.category)) {
+            stats[t.category].total++;
+            if (t.status === 'Resolved' || t.status === 'Closed') {
+                stats[t.category].resolved++;
+            }
+        }
+    });
+
+    const maxTotal = Math.max(...Object.values(stats).map(s => s.total), 1);
+
+    container.innerHTML = categories.map(c => {
+        const s = stats[c];
+        const height = (s.total / (maxTotal * 1.2)) * 100;
+        const progress = s.total > 0 ? Math.round((s.resolved / s.total) * 100) : 0;
+        
+        // Color based on progress
+        const progressColor = progress > 70 ? 'var(--success)' : progress > 30 ? 'var(--warning)' : 'var(--accent)';
+        
+        return `
+            <div class="bar" style="height: ${height}%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: flex-end; position: relative; overflow: visible;">
+                <!-- Progress Fill -->
+                <div style="height: ${progress}%; width: 100%; background: linear-gradient(to top, var(--primary), ${progressColor}); border-radius: 4px; box-shadow: 0 0 15px ${progressColor}44;"></div>
+                
+                <!-- Progress Point/Badge -->
+                <div style="position: absolute; top: -45px; left: 50%; transform: translateX(-50%); text-align: center; width: 100%;">
+                    <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 2px;">${progress}%</div>
+                    <div style="font-weight: bold; color: white; font-size: 1rem;">${s.total}</div>
+                </div>
+                
+                <div class="bar-label" style="bottom: -35px;">${c}</div>
+                
+                <!-- Status Dot -->
+                <div style="position: absolute; bottom: 5px; right: -5px; width: 8px; height: 8px; border-radius: 50%; background: ${progressColor}; box-shadow: 0 0 8px ${progressColor};"></div>
+            </div>
+        `;
     }).join('');
 }
+
+
+
+
+function renderAdminTicketTable() {
+    const tbody = document.querySelector('#adminTicketTable tbody');
+    if (!tbody) return;
+    if (!state.tickets.length) {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-inbox"></i><p>No tickets.</p></div></td></tr>';
+        return;
+    }
+    // Show only the 10 most recent tickets on the dashboard
+    const recentTickets = state.tickets.slice(0, 10);
+    tbody.innerHTML = recentTickets.map(t => {
+        const sc = t.status === 'Open' ? 'var(--success)' : t.status === 'Resolved' ? 'var(--danger)' : 'var(--warning)';
+        const pc = t.priority === 'High' ? 'var(--danger)' : t.priority === 'Medium' ? 'var(--warning)' : 'var(--success)';
+        return `
+            <tr>
+                <td class="col-id">#${t.id}</td>
+                <td title="${t.subject}"><b>${t.subject}</b></td>
+                <td style="color:var(--accent)">${t.assigned_to||'Unassigned'}</td>
+                <td class="col-status" style="color:${pc}">${t.priority||''}</td>
+                <td class="col-status" style="color:${sc}">${t.status||''}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
 
 // ──────────────────────────────────────────────
 // ADMIN — CREATE TICKET
@@ -1784,6 +2040,37 @@ showDoc('overview');
 updateNav();
 toggleRegFields();
 </script>
-</div> <!-- End main-content -->
+
+
+<footer>
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h3>INKOMANE</h3>
+            <p>Advanced support solutions for modern enterprises. Empowing teams through AI and automated ticketing.</p>
+        </div>
+        <div class="footer-col">
+            <h3>Services</h3>
+            <ul style="list-style:none; padding:0;">
+                <li>Cloud Infrastructure</li>
+                <li>Cybersecurity Audit</li>
+                <li>AI Integration</li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h3>Support</h3>
+            <ul style="list-style:none; padding:0;">
+                <li>Documentation</li>
+                <li>Help Center</li>
+                <li>Community</li>
+            </ul>
+        </div>
+    </div>
+    <div style="text-align:center; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); font-size:0.8rem; color:var(--text-dim);">
+        &copy; 2026 INKOMANE. All Rights Reserved.
+    </div>
+</footer>
+
+</main> <!-- End main-content -->
+
 </body>
 </html>

@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>INKOMANE | Advanced Support System</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+    <link rel="stylesheet" href="{{asset('css/style.css')}}">
     <style>
-        :root {
+          :root {
             --primary: #4e54c8;
             --secondary: #8f94fb;
             --accent: #00d2ff;
@@ -47,7 +48,11 @@
             padding: 25px;
             margin-bottom: 25px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            /* Removed overflow-x: auto to eliminate scrollbars */
         }
+        .glass-panel::-webkit-scrollbar { height: 6px; }
+        .glass-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+        .glass-panel::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
 
         button { cursor: pointer; border: none; outline: none; transition: 0.3s; border-radius: 6px; padding: 10px 18px; font-weight: 500; }
         .btn-primary  { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 4px 15px rgba(78,84,200,0.4); }
@@ -177,10 +182,16 @@
         .admin-layout { display: grid; grid-template-columns: 2.2fr 1fr; gap: 24px; }
         @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; } .doc-container { grid-template-columns: 1fr; } }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding: 14px; border-bottom: 2px solid var(--glass-border); color: var(--accent); font-size: 0.88rem; text-transform: uppercase; letter-spacing: 1px; }
-        td { padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.88rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; } /* Fixed layout to prevent overflow */
+        th { text-align: left; padding: 12px 10px; border-bottom: 2px solid var(--glass-border); color: var(--accent); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        td b { white-space: normal; } 
         tr:hover { background: rgba(255,255,255,0.04); }
+        
+        /* Specific column widths for better organization */
+        .col-id { width: 60px; }
+        .col-status { width: 120px; }
+        .col-actions { width: 100px; }
 
         .chart-box { height: 300px; display: flex; align-items: flex-end; justify-content: space-around; padding-top: 40px; border-bottom: 2px solid var(--glass-border); }
         .bar { width: 50px; background: linear-gradient(to top, var(--primary), var(--accent)); border-radius: 8px 8px 0 0; position: relative; box-shadow: 0 0 15px rgba(78,84,200,0.5); }
@@ -195,8 +206,17 @@
         .close:hover { color: var(--danger); }
         .modal-content label { font-size: 0.84rem; color: var(--text-dim); display: block; margin-bottom: 2px; }
 
-        footer { margin-top: auto; background: rgba(0,0,0,0.4); border-top: 1px solid var(--glass-border); padding: 55px 5% 20px; }
-        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 28px; margin-bottom: 36px; }
+        footer { 
+            background: rgba(10,15,30,0.9); 
+            backdrop-filter: blur(25px);
+            border-top: 1px solid var(--glass-border); 
+            padding: 60px 5% 30px;
+            width: 100%;
+            position: relative;
+            z-index: 900;
+            clear: both;
+        }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 40px; margin-bottom: 40px; }
         .footer-col h3 { color: var(--accent); margin-bottom: 18px; font-size: 1rem; }
         .footer-col p, .footer-col li { color: var(--text-dim); line-height: 1.8; font-size: 0.88rem; }
         .footer-col ul { list-style: none; }
@@ -216,16 +236,175 @@
         .empty-state i { font-size: 2.8rem; margin-bottom: 14px; opacity: 0.35; display: block; }
 
         form-label { display: block; font-size: 0.84rem; color: var(--text-dim); margin-bottom: 3px; text-align: left; }
+        
+        /* ── New Styles for Agent Login & Admin Auth ── */
+        .login-options { display: flex; justify-content: center; width: 100%; }
+        .login-card {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            padding: 35px; border-radius: 12px; text-align: center; transition: 0.3s;
+            max-width: 400px; width: 100%;
+        }
+        
+        .customer-login-box {
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 18px;
+            text-align: left;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .login-card {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            padding: 20px; border-radius: 10px; text-align: center; transition: 0.3s;
+        }
+        .login-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+        .login-card h3 { margin: 10px 0; font-size: 1.1rem; }
+        .login-card i { font-size: 2rem; margin-bottom: 10px; color: var(--secondary); }
+        .agent-card i { color: var(--warning); }
+        .admin-card i { color: var(--danger); }
+        .login-input-group { text-align: left; margin-top: 10px; }
+
+        /* ── Navigation Layouts ── */
+        .top-navbar {
+            padding: 0 5%; background: rgba(10,15,30,0.85); backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 1100; height: 75px;
+            width: 100%; transition: 0.3s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .btn-dashboard-highlight {
+            background: var(--accent) !important;
+            color: #000 !important;
+            font-weight: 700 !important;
+            padding: 10px 22px !important;
+            border-radius: 4px !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px var(--accent);
+            text-transform: uppercase;
+            font-size: 0.85rem !important;
+        }
+        .top-navbar .logo { font-size: 1.6rem; font-weight: 700; color: #fff; text-decoration: none; }
+        .top-navbar .nav-links { display: flex; flex-direction: row; gap: 35px; align-items: center; }
+        .top-navbar .nav-links button { 
+            background: none; color: #ccc; font-size: 0.95rem; font-weight: 500; padding: 5px 0;
+            border-bottom: 2px solid transparent; border-radius: 0;
+        }
+        .top-navbar .nav-links button:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .sidebar {
+            width: 260px; height: 100vh; position: fixed; left: 0; top: 0;
+            background: rgba(15, 20, 35, 0.95); backdrop-filter: blur(25px);
+            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column;
+            padding: 30px 0; z-index: 1000; box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar .logo { font-size: 1.8rem; font-weight: 800; color: var(--accent); padding: 0 30px; margin-bottom: 45px; letter-spacing: 2px; }
+        .sidebar .nav-links { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+        .sidebar .nav-links button {
+            text-align: left; padding: 14px 30px; background: none; border: none; color: #ccc;
+            font-size: 0.95rem; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent;
+            display: flex; align-items: center; gap: 15px; border-radius: 0;
+        }
+        .sidebar .nav-links button i { font-size: 1.1rem; width: 22px; text-align: center; }
+        .sidebar .nav-links button:hover, .sidebar .nav-links button.active-nav { 
+            background: rgba(0,210,255,0.08); color: var(--accent); border-left-color: var(--accent); 
+        }
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; min-height: 100vh; transition: 0.3s; }
+        body.with-sidebar .main-content { margin-left: 260px; padding: 40px 5%; }
+        body.with-sidebar .top-navbar { display: none; }
+        body.no-sidebar .sidebar { transform: translateX(-260px); }
+        body.no-sidebar .main-content { margin-left: 0; padding: 0; }
+
+        @media (max-width: 1100px) {
+            body.with-sidebar .main-content { margin-left: 80px; }
+            .sidebar { width: 80px; }
+            .sidebar .logo { font-size: 0; padding: 0; text-align: center; }
+            .sidebar .logo::before { content: 'IK'; font-size: 1.8rem; }
+            .sidebar button span { display: none; }
+        }
+
+        .notif-sidebar { margin-top: auto; padding: 25px 30px; border-top: 1px solid var(--glass-border); position: relative; }
+        .notif-badge-sidebar { background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; margin-left: 5px; min-width: 18px; text-align: center; }
+        .notif-dot { position: absolute; top: 25px; left: 42px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; display: none; box-shadow: 0 0 8px var(--danger); }
+        
+        .notif-item {
+            padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; 
+            transition: 0.2s; border-radius: 6px; margin-bottom: 5px;
+        }
+        .notif-item:hover { background: rgba(255,255,255,0.05); }
+        .notif-item.unread { border-left: 3px solid var(--accent); background: rgba(0,210,255,0.03); }
+        .notif-item i { margin-right: 8px; color: var(--accent); }
+
+        /* Role-specific Profile Styles */
+        .profile-bottom-sidebar {
+            margin-top: auto; padding: 20px 30px; border-top: 1px solid var(--glass-border);
+            display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s;
+        }
+        .profile-bottom-sidebar:hover { background: rgba(255,255,255,0.05); }
+        .profile-top-right {
+            display: flex; align-items: center; gap: 15px; background: rgba(15, 20, 35, 0.6);
+            padding: 8px 20px; border-radius: 40px; border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+        .dashboard-header-right {
+            position: absolute; top: 30px; right: 5%; display: flex; align-items: center; gap: 20px; z-index: 100;
+        }
     </style>
 </head>
-<body>
+<body class="no-sidebar">
 
-<nav>
+<nav class="top-navbar" id="topNav">
     <div class="logo">INKOMANE</div>
-    <div class="nav-links" id="navLinks"></div>
+    <div class="nav-links" id="topNavLinks" style="display: flex; align-items: center; gap: 20px;"></div>
 </nav>
 
-<main>
+<div class="sidebar" id="sideNav">
+    <div class="logo">INKOMANE</div>
+    <div class="nav-links" id="sideNavLinks"></div>
+    
+    <!-- User Profile (Bottom Left - Gemini Style for Customers) -->
+    <div id="sidebarProfile" class="profile-bottom-sidebar" style="display:none;" onclick="logout()">
+        <div style="width:38px; height:38px; border-radius:50%; background:linear-gradient(45deg, var(--primary), var(--accent)); display:flex; align-items:center; justify-content:center; color:white; font-size:1.2rem;">
+            <i class="fas fa-user"></i>
+        </div>
+        <div style="overflow:hidden;">
+            <p id="sidebarUserName" style="margin:0; font-weight:600; font-size:0.9rem; white-space:nowrap; text-overflow:ellipsis;"></p>
+            <p id="sidebarUserRole" style="margin:0; font-size:0.75rem; color:var(--text-dim);"></p>
+        </div>
+        <i class="fas fa-sign-out-alt" style="margin-left:auto; color:var(--danger); font-size:0.8rem; opacity:0.6;"></i>
+    </div>
+
+    <div class="notif-sidebar" onclick="toggleNotifications()">
+        <div id="notifDot" class="notif-dot"></div>
+        <button style="background:none; border:none; color:var(--accent); cursor:pointer; display:flex; align-items:center; gap:10px; padding:0;">
+            <i class="fas fa-bell"></i> <span>Notifications</span>
+            <span id="notifBadge" class="notif-badge-sidebar" style="display: none;">0</span>
+        </button>
+        <div id="notifDropdown" class="glass-panel" style="position: absolute; bottom: 80px; left: 20px; width: 280px; max-height: 400px; overflow-y: auto; display: none; z-index: 2001; padding: 15px;">
+            <h4 style="margin-bottom: 10px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Notifications</h4>
+            <div id="notifList"></div>
+            <button class="btn-configure" style="width: 100%; margin-top: 10px;" onclick="clearNotifications()">Clear All</button>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <!-- Header Right Profile (Top Right - ChatGPT Style for Admins/Agents) -->
+    <div id="headerProfile" class="dashboard-header-right" style="display:none;">
+        <div class="profile-top-right">
+            <div style="text-align:right;">
+                <p id="headerUserName" style="margin:0; font-weight:600; font-size:0.85rem; color:white;"></p>
+                <p id="headerUserRole" style="margin:0; font-size:0.7rem; color:var(--accent); font-weight:bold; text-transform:uppercase; letter-spacing:1px;"></p>
+            </div>
+            <div style="width:35px; height:35px; border-radius:50%; background:var(--glass-border); display:flex; align-items:center; justify-content:center; border:1px solid var(--accent);">
+                <i class="fas fa-user-shield" id="headerUserIcon"></i>
+            </div>
+            <button onclick="logout()" style="background:none; color:var(--danger); padding:5px; margin-left:5px;"><i class="fas fa-power-off"></i></button>
+        </div>
+    </div>
 
 <!-- ═══════════════ HOME ═══════════════ -->
 <section id="home" class="view-section active">
@@ -265,87 +444,126 @@
     <div class="center-box">
         <div class="glass-panel" style="text-align:center;">
             <h2 style="margin-bottom:6px;">Welcome Back</h2>
-            <p style="color:var(--text-dim); margin-bottom:26px; font-size:0.9rem;">Log in to check your ticket status or access the admin panel.</p>
+            <p style="color:var(--text-dim); margin-bottom:26px; font-size:0.9rem;">Sign in to access your dashboard, status, or configuration tools.</p>
 
-            <!-- Customer login -->
-            <div style="background:rgba(0,0,0,0.25); border-radius:10px; padding:22px; margin-bottom:18px; text-align:left;">
-                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:10px; font-weight:500;">
-                    <i class="fas fa-user" style="color:var(--accent); margin-right:5px;"></i> CUSTOMER — Check Your Status
+            <div class="customer-login-box" style="padding: 30px;">
+                <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:20px; text-align:center;">
+                    <i class="fas fa-shield-alt" style="color:var(--accent); font-size: 2.5rem; display: block; margin-bottom: 10px;"></i>
+                    Unified System Access
                 </p>
-                <label style="font-size:0.82rem; color:var(--text-dim);">Email used during registration</label>
-                <input type="email" id="loginEmail" placeholder="e.g. alice@email.com">
-                <button class="btn-outline" style="width:100%" onclick="loginCustomer()">
-                    <i class="fas fa-sign-in-alt"></i> View My Status
+                
+                <label style="font-size:0.82rem; color:var(--text-dim);">Email Address</label>
+                <input type="email" id="uniEmail" placeholder="e.g. alice@example.com">
+                
+                <label style="font-size:0.82rem; color:var(--text-dim);">Password</label>
+                <input type="password" id="uniPass" placeholder="••••••••">
+
+                <button class="btn-primary" style="width:100%; padding: 15px; font-size: 1rem; margin-top: 10px;" onclick="unifiedLogin()">
+                    <i class="fas fa-sign-in-alt"></i> Login & Access
                 </button>
             </div>
 
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
-                <div style="flex:1; height:1px; background:var(--glass-border)"></div>
-                <span style="color:var(--text-dim); font-size:0.78rem; letter-spacing:1px;">OR</span>
-                <div style="flex:1; height:1px; background:var(--glass-border)"></div>
-            </div>
-
-            <button class="btn-primary" style="width:100%; margin-bottom:18px;" onclick="loginAdmin()">
-                <i class="fas fa-user-shield"></i> Admin Login
-            </button>
-
             <p style="font-size:0.85rem; color:var(--text-dim);">
-                First time here? <a href="#" onclick="router('register')" style="color:var(--accent); font-weight:600;">Apply for Support →</a>
+                New here? <a href="#" onclick="router('apply')" style="color:var(--accent); font-weight:600;">Apply for Support →</a>
+            </p>
+            <p style="font-size:0.82rem; color:var(--text-dim); margin-top: 10px;">
+                Internal Staff? <a href="#" onclick="router('register')" style="color:var(--secondary);">Create Internal Account</a>
             </p>
         </div>
     </div>
 </section>
 
-<!-- ═══════════════ REGISTER / APPLY ═══════════════ -->
-<section id="register" class="view-section">
+<!-- ═══════════════ APPLY FOR SUPPORT (CUSTOMER ONLY) ═══════════════ -->
+<section id="apply" class="view-section">
     <div class="center-box" style="max-width:530px;">
         <div class="glass-panel">
             <h2 style="margin-bottom:5px;"><i class="fas fa-paper-plane"></i> Apply for Support</h2>
             <p style="color:var(--text-dim); font-size:0.88rem; margin-bottom:22px;">
-                Tell us who you are and describe your issue. An agent will be assigned — log back in to see your confirmation.
+                Tell us who you are and describe your issue. An agent will be assigned — log back in with your email to see your confirmation.
             </p>
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Full Name *</p>
-            <input type="text"  id="regName"    placeholder="e.g. Alice Smith">
+            <div class="customer-login-box">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Full Name *</p>
+                <input type="text"  id="applyName"    placeholder="e.g. Alice Smith">
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Email Address * <span style="font-size:0.75rem;">(you'll use this to log back in)</span></p>
-            <input type="email" id="regEmail"   placeholder="e.g. alice@email.com">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Email Address *</p>
+                <input type="email" id="applyEmail"   placeholder="e.g. alice@email.com">
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Department</p>
-            <select id="regDept">
-                <option value="Sales">Sales Department</option>
-                <option value="Technical">Technical Support</option>
-                <option value="Billing">Billing Accounts</option>
-            </select>
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Create Tracking Password *</p>
+                <input type="password" id="applyPass" placeholder="••••••••">
 
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:6px; text-align:left;">Issue Category — rotate the cube and click a face</p>
-            <div class="scene">
-                <div class="cube" id="regCube">
-                    <div class="cube-face front"  onclick="setRegCat('Hardware')">Hardware</div>
-                    <div class="cube-face back"   onclick="setRegCat('Software')">Software</div>
-                    <div class="cube-face right"  onclick="setRegCat('Network')">Network</div>
-                    <div class="cube-face left"   onclick="setRegCat('Account')">Account</div>
-                    <div class="cube-face top"    onclick="setRegCat('Access')">Access</div>
-                    <div class="cube-face bottom" onclick="setRegCat('Other')">Other</div>
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Department</p>
+                <select id="applyDept">
+                    <option value="Sales">Sales Department</option>
+                    <option value="Technical">Technical Support</option>
+                    <option value="Billing">Billing Accounts</option>
+                </select>
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:6px; text-align:left;">Issue Category — rotate the cube and click a face</p>
+                <div class="scene">
+                    <div class="cube" id="applyCube">
+                        <div class="cube-face front"  onclick="setRegCat('Hardware')">Hardware</div>
+                        <div class="cube-face back"   onclick="setRegCat('Cloud Services')">Cloud</div>
+                        <div class="cube-face right"  onclick="setRegCat('Network')">Network</div>
+                        <div class="cube-face left"   onclick="setRegCat('Cybersecurity')">Security</div>
+                        <div class="cube-face top"    onclick="setRegCat('AI & Automation')">AI / Auto</div>
+                        <div class="cube-face bottom" onclick="setRegCat('Data Analytics')">Data</div>
+                    </div>
                 </div>
+                <p style="text-align:center; margin-bottom:6px; font-size:0.88rem;">
+                    Selected: <strong id="applySelectedCat" style="color:var(--accent);">Hardware</strong>
+                </p>
+                <div style="display:flex; gap:8px; justify-content:center; margin-bottom:18px;">
+                    <button class="btn-outline" style="padding:7px 18px;" onclick="rotateRegCube(-1)">&#8592; Left</button>
+                    <button class="btn-outline" style="padding:7px 18px;" onclick="rotateRegCube(1)">Right &#8594;</button>
+                </div>
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Issue Subject *</p>
+                <input type="text" id="applySubject" placeholder="Brief one-line description of your problem">
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Additional Details</p>
+                <textarea id="applyDesc" rows="3" placeholder="Any extra context that will help the agent..."></textarea>
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Attach File (Screenshot/Logs)</p>
+                <input type="file" id="applyFile" style="padding: 8px;">
+
+                <button class="btn-primary" style="width:100%; font-size:0.98rem; padding:13px;" onclick="submitApplication()">
+                    <i class="fas fa-paper-plane"></i>&nbsp; Submit Application
+                </button>
             </div>
-            <p style="text-align:center; margin-bottom:6px; font-size:0.88rem;">
-                Selected: <strong id="regSelectedCat" style="color:var(--accent);">Hardware</strong>
-            </p>
-            <div style="display:flex; gap:8px; justify-content:center; margin-bottom:18px;">
-                <button class="btn-outline" style="padding:7px 18px;" onclick="rotateRegCube(-1)">&#8592; Left</button>
-                <button class="btn-outline" style="padding:7px 18px;" onclick="rotateRegCube(1)">Right &#8594;</button>
+            <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="router('login')">Cancel</button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════ INTERNAL REGISTRATION (USERS/AGENTS) ═══════════════ -->
+<section id="register" class="view-section">
+    <div class="center-box" style="max-width:450px;">
+        <div class="glass-panel">
+            <h2 style="margin-bottom:5px;"><i class="fas fa-user-plus"></i> Internal Registration</h2>
+            <p style="color:var(--text-dim); font-size:0.88rem; margin-bottom:22px;">Create an account for staff or administration access.</p>
+
+            <div class="customer-login-box">
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">User Category *</p>
+                <select id="regRole">
+                    <option value="User">General User</option>
+                    <option value="Team Agent">Team Agent</option>
+                    <!-- Admin role removed from public signup for security -->
+                </select>
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Full Name *</p>
+                <input type="text"  id="regName" placeholder="Full Name">
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Email Address *</p>
+                <input type="email" id="regEmail" placeholder="Email">
+
+                <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Password *</p>
+                <input type="password" id="regPass" placeholder="••••••••">
+
+                <button class="btn-primary" style="width:100%; font-size:0.98rem; padding:13px;" onclick="unifiedRegister()">
+                    <i class="fas fa-check-circle"></i>&nbsp; Create Account
+                </button>
             </div>
-
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Issue Subject *</p>
-            <input type="text" id="regSubject" placeholder="Brief one-line description of your problem">
-
-            <p style="font-size:0.82rem; color:var(--text-dim); margin-bottom:3px; text-align:left;">Additional Details</p>
-            <textarea id="regDesc" rows="3" placeholder="Any extra context that will help the agent..."></textarea>
-
-            <button class="btn-primary" style="width:100%; font-size:0.98rem; padding:13px;" onclick="submitApplication()">
-                <i class="fas fa-paper-plane"></i>&nbsp; Submit Application
-            </button>
             <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="router('login')">Cancel</button>
         </div>
     </div>
@@ -373,11 +591,15 @@
 <!-- ═══════════════ CUSTOMER STATUS PAGE ═══════════════ -->
 <section id="customer-status" class="view-section">
     <div style="max-width:640px; margin:0 auto;">
-
         <!-- Banner injected by JS -->
         <div id="customerStatusBanner"></div>
 
         <div class="glass-panel">
+            <h3 style="margin-bottom:18px;"><i class="fas fa-ticket-alt"></i> Active Tickets</h3>
+            <div id="customerActiveTickets"></div>
+            
+            <hr style="border:0; border-top:1px solid var(--glass-border); margin:25px 0;">
+            
             <h3 style="margin-bottom:18px;"><i class="fas fa-clipboard-list"></i> Your Application Details</h3>
             <div id="customerApplicationCards"></div>
         </div>
@@ -390,56 +612,123 @@
     </div>
 </section>
 
-<!-- ═══════════════ ADMIN OVERVIEW ═══════════════ -->
+<!-- ═══════════════ ADMIN DASHBOARD (STATISTICS) ═══════════════ -->
 <section id="admin-dashboard" class="view-section">
     <div class="dashboard-header">
-        <h1>Admin Overview</h1>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn-configure" onclick="router('applications-queue')"><i class="fas fa-inbox"></i> Applications Queue</button>
-            <button class="btn-primary"   onclick="router('customer-management')">Customers <i class="fas fa-arrow-right"></i></button>
+        <h1><i class="fas fa-chart-pie"></i> System Statistics</h1>
+        <div class="customer-actions">
+            <button class="btn-primary" onclick="loadSystemData()"><i class="fas fa-sync-alt"></i> Refresh Stats</button>
         </div>
     </div>
+
     <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="statUsers">0</div><div>Registered Users</div></div>
-        <div class="stat-card"><div class="stat-num" id="statTickets">0</div><div>Tickets</div></div>
-        <div class="stat-card"><div class="stat-num" id="statPending">0</div><div>Pending Apps</div></div>
-        <div class="stat-card"><div class="stat-num" id="statConfirmed">0</div><div>Confirmed Apps</div></div>
-    </div>
-    <div class="admin-layout">
-        <div style="grid-column:span 2;">
-            <div class="glass-panel">
-                <h3><i class="fas fa-ticket-alt"></i> Ticket Table</h3>
-                <table id="adminTicketTable">
-                    <thead><tr><th>ID</th><th>Subject</th><th>Applicant</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statUsers">0</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Total Users</div>
         </div>
-        <div>
-            <div class="glass-panel">
-                <h3>Site Progress</h3>
-                <div class="chart-box">
-                    <div class="bar" style="height:60%;"><div class="bar-value">60%</div><div class="bar-label">Resolved</div></div>
-                    <div class="bar" style="height:25%;"><div class="bar-value">25%</div><div class="bar-label">Pending</div></div>
-                    <div class="bar" style="height:15%;"><div class="bar-value">15%</div><div class="bar-label">Critical</div></div>
-                </div>
-            </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statTickets">0</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Total Tickets</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statPending">0</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Pending Apps</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="statConfirmed">0</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Confirmed Apps</div>
+        </div>
+    </div>
+
+    <div class="glass-panel" style="margin-bottom: 30px;">
+        <h3 style="margin-bottom: 10px;"><i class="fas fa-layer-group"></i> Category Distribution Analysis</h3>
+        <p style="color:var(--text-dim); margin-bottom:40px; font-size:0.85rem;">Comparison of support requests across modern working categories.</p>
+        <div class="chart-box" id="categoryChart" style="margin-bottom: 20px; min-height: 350px;">
+            <!-- Vertical bars will be injected here -->
+        </div>
+    </div>
+
+    <div class="glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3><i class="fas fa-history"></i> Recent System Activity</h3>
+            <button class="btn-configure" onclick="router('customer-management')">View All Users <i class="fas fa-arrow-right"></i></button>
+        </div>
+        <table id="adminTicketTable">
+            <thead>
+                <tr>
+                    <th class="col-id">ID</th>
+                    <th>Subject & Details</th>
+                    <th>Assigned Agent</th>
+                    <th class="col-status">Priority</th>
+                    <th class="col-status">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+
+<!-- ═══════════════ AGENT DASHBOARD ═══════════════ -->
+<section id="agent-dashboard" class="view-section">
+    <div class="dashboard-header">
+        <h1><i class="fas fa-headset"></i> Agent Workspace</h1>
+    </div>
+    
+    <div class="admin-layout">
+        <div class="glass-panel">
+            <h3>My Assigned Tickets</h3>
+            <p style="color:var(--text-dim); margin-bottom:15px; font-size:0.9rem;">Tickets currently assigned to you for resolution.</p>
+            <table id="agentTicketTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="agentTicketBody"></tbody>
+            </table>
+        </div>
+
+        <div class="customer-login-box">
+            <h3><i class="fas fa-id-card"></i> My Contact Info</h3>
+            <p style="color:var(--text-dim); margin-bottom:15px; font-size:0.85rem;">This info is visible to customers on their tickets.</p>
+            <label>Display Name</label>
+            <input type="text" id="agentProfileName" placeholder="Public Name">
+            <label>Contact Phone</label>
+            <input type="text" id="agentProfilePhone" placeholder="+123 456 789">
+            <label>Work Email</label>
+            <input type="email" id="agentProfileEmail" placeholder="agent@email.com">
+            <button class="btn-primary" style="width:100%" onclick="saveAgentProfile()">Update Profile</button>
         </div>
     </div>
 </section>
 
-<!-- ═══════════════ APPLICATIONS QUEUE (Admin) ═══════════════ -->
+<!-- ═══════════════ APPLICATIONS QUEUE (Agent Managed) ═══════════════ -->
 <section id="applications-queue" class="view-section">
     <div class="dashboard-header">
-        <h1><i class="fas fa-inbox"></i> Applications Queue</h1>
-        <button class="btn-outline" onclick="router('admin-dashboard')">&#8592; Back to Overview</button>
+        <h1><i class="fas fa-clipboard-list"></i> Applications Queue</h1>
+        <button class="btn-success" onclick="confirmAll()"><i class="fas fa-check-double"></i> Confirm All</button>
     </div>
     <div class="glass-panel">
-        <table id="appsTable">
+        <table class="customer-table">
             <thead>
                 <tr>
-                    <th>Applicant</th><th>Email</th><th>Category</th>
-                    <th>Subject</th><th>Submitted</th><th>Status</th><th>Action</th>
+                    <th class="col-id">ID</th>
+                    <th>Applicant Name</th>
+                    <th>Contact Email</th>
+                    <th>Category</th>
+                    <th>Issue Subject</th>
+                    <th>Date Submitted</th>
+                    <th class="col-status">Current Status</th>
+                    <th class="col-actions">Actions</th>
                 </tr>
             </thead>
             <tbody id="appsTableBody"></tbody>
@@ -451,8 +740,9 @@
 <section id="customer-management" class="view-section">
     <div class="glass-panel">
         <div class="customer-header">
-            <h2>Your Customers</h2>
+            <h2>Team & User Management</h2>
             <div class="customer-actions">
+                <button class="btn-warning" onclick="openDbConfigModal()"><i class="fas fa-database"></i> DB Config</button>
                 <select id="filterSelect" onchange="filterUsers()">
                     <option value="all">All</option>
                     <option value="Sales">Sales</option>
@@ -487,7 +777,7 @@
     </div>
 </section>
 
-</main>
+</div> <!-- End main-content -->
 
 <!-- MODAL: Add / Edit User -->
 <div id="userModal" class="modal">
@@ -502,7 +792,9 @@
         <label>Role</label>
         <select id="newRole">
             <option value="Customer">Customer</option>
-            <option value="Support Agent">Support Agent</option>
+            <option value="User">User</option>
+            <option value="Team Agent">Team Agent</option>
+            <option value="Admin">Admin</option>
         </select>
         <label>Department</label>
         <select id="newDept">
@@ -519,6 +811,41 @@
             <option value="None">None</option>
         </select>
         <button class="btn-primary" style="width:100%" onclick="saveUser()"><i class="fas fa-save"></i> Save User</button>
+    </div>
+</div>
+
+<!-- MODAL: Create Ticket (New) -->
+<div id="createTicketModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCreateTicketModal()">&times;</span>
+        <h3><i class="fas fa-plus-circle"></i> Create New Ticket</h3>
+        <label>Customer Email</label>
+        <input type="email" id="ticketCustomerEmail" placeholder="customer@example.com">
+        <label>Subject</label>
+        <input type="text" id="ticketSubject" placeholder="Ticket Subject">
+        <label>Category</label>
+        <select id="ticketCategory">
+            <option value="Hardware">Hardware</option>
+            <option value="Software">Software</option>
+            <option value="Cloud Services">Cloud Services</option>
+            <option value="Network">Network</option>
+            <option value="Cybersecurity">Cybersecurity</option>
+            <option value="AI & Automation">AI & Automation</option>
+            <option value="Data Analytics">Data Analytics</option>
+            <option value="Account">Account</option>
+            <option value="Billing">Billing</option>
+        </select>
+        <label>Assign To Agent</label>
+        <select id="ticketAgent">
+            <!-- Populated by JS -->
+        </select>
+        <label>Priority</label>
+        <select id="ticketPriority">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+        </select>
+        <button class="btn-primary" style="width:100%" onclick="submitNewTicket()">Create & Assign</button>
     </div>
 </div>
 
@@ -543,44 +870,69 @@
             <option value="Medium">Medium</option>
             <option value="High">High</option>
         </select>
+        <label>Agent Response</label>
+        <textarea id="configResponse" placeholder="Write your response to the customer here..." style="width:100%; height:100px; padding:10px; border-radius:6px; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; margin-bottom:15px; resize:vertical;"></textarea>
         <button class="btn-primary" style="width:100%" onclick="saveTicketConfig()">Update Ticket</button>
     </div>
 </div>
 
-<!-- Footer -->
+<!-- MODAL: DB Config (Admin Only) -->
+<div id="dbConfigModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeDbConfigModal()">&times;</span>
+        <h3><i class="fas fa-database"></i> Database Configuration</h3>
+        <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:15px;">Configure the system database connection.</p>
+        <label>DB Host</label>
+        <input type="text" id="dbHost" value="127.0.0.1">
+        <label>DB Name</label>
+        <input type="text" id="dbName" value="inkomane">
+        <label>DB User</label>
+        <input type="text" id="dbUser" value="root">
+        <label>DB Password</label>
+        <input type="password" id="dbPass" value="">
+        <button class="btn-primary" style="width:100%" onclick="saveDbConfig()">Update Connection</button>
+    </div>
+</div>
+
 <footer>
     <div class="footer-grid">
         <div class="footer-col">
-            <h3>INKOMANE</h3>
-            <p>Advanced customer support ticketing system with interactive 3D tools and real-time analytics.</p>
-            <div class="social-icons" style="margin-top:14px;">
-                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                <a href="https://twitter.com"  target="_blank"><i class="fab fa-twitter"></i></a>
-                <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+            <h3><i class="fas fa-cube" style="color:var(--accent)"></i> INKOMANE</h3>
+            <p>Advanced support solutions for modern enterprises. Empowering teams through AI-driven automation and seamless ticketing workflows.</p>
+            <div class="social-icons" style="margin-top:20px;">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
             </div>
         </div>
         <div class="footer-col">
-            <h3>Quick Links</h3>
-            <ul>
-                <li><a href="#" onclick="router('home')">Home</a></li>
+            <h3>Core Services</h3>
+            <ul style="list-style:none; padding:0;">
+                <li><a href="#">Cloud Infrastructure</a></li>
+                <li><a href="#">Cybersecurity Audit</a></li>
+                <li><a href="#">AI & Automation</a></li>
+                <li><a href="#">Data Analytics</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h3>Resources</h3>
+            <ul style="list-style:none; padding:0;">
                 <li><a href="#" onclick="router('docs')">Documentation</a></li>
+                <li><a href="#">Help Center</a></li>
                 <li><a href="#">Privacy Policy</a></li>
                 <li><a href="#">Terms of Service</a></li>
             </ul>
         </div>
         <div class="footer-col">
             <h3>Contact Us</h3>
-            <p><i class="fas fa-map-marker-alt"></i> 123 Innovation Dr, Tech City</p>
-            <p><i class="fas fa-envelope"></i> support@inkomane.com</p>
-            <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
-        </div>
-        <div class="footer-col">
-            <h3>Locate Us</h3>
-          <iframe class="map-frame" src="https://maps.google.com/maps?q=Cape+Town+Science+Centre&t=&z=15&ie=UTF8&iwloc=&output=embed"  class="map-frame"  title="map"></iframe>
+            <p><i class="fas fa-map-marker-alt" style="color:var(--accent)"></i> 123 Tech Avenue, Silicon Valley</p>
+            <p><i class="fas fa-phone" style="color:var(--accent)"></i> +1 (555) 000-1234</p>
+            <p><i class="fas fa-envelope" style="color:var(--accent)"></i> support@inkomane.com</p>
         </div>
     </div>
-    <div class="footer-bottom">&copy; 2024 INKOMANE Project. All Rights Reserved.</div>
+    <div class="footer-bottom">
+        &copy; 2026 INKOMANE | Advanced Support Ecosystem. All Rights Reserved.
+    </div>
 </footer>
 
 <div id="toast">Message</div>
@@ -591,12 +943,12 @@
 // ──────────────────────────────────────────────
 const docsData = {
     overview:        '<h2>System Overview</h2><p>INKOMANE is an application-based support ticketing system. Users apply for support, admins confirm via a queue, and applicants see colour-coded confirmation status on their next login.</p>',
-    functional:      '<h2>Functional Requirements</h2><ul><li>Application-based ticket submission with 3D category cube</li><li>Instant wait page after applying</li><li>Admin Applications Queue with one-click confirm</li><li>Customer status page: green = confirmed, red = pending</li><li>Full User & Ticket CRUD for admins</li></ul>',
+    functional:      '<h2>Functional Requirements</h2><ul><li>Application-based ticket submission with 3D category cube</li><li>Instant wait page after applying</li><li>Admin Applications Queue with one-click confirm</li><li>Customer status page: green = confirmed, red = pending</li><li>Full User & Ticket CRUD for admins</li><li>Agent Dashboard for assigned tickets</li></ul>',
     'non-functional':'<h2>Non-Functional</h2><p>Fast, Secure, and Scalable with graceful fallback when the backend API is unavailable.</p>'
 };
 
 // ──────────────────────────────────────────────
-// STATE  — applications are persisted in localStorage
+// STATE
 // ──────────────────────────────────────────────
 const state = {
     currentUser:     null,
@@ -604,211 +956,566 @@ const state = {
     regSelectedCat:  'Hardware',
     editingTicketId: null,
     editingUserId:   null,
-    nextUserId:      10,
-    nextAppId:       100,
-
-    // Load saved applications from localStorage (persists across page refreshes)
-    applications: JSON.parse(localStorage.getItem('inkomane_apps') || '[]'),
-
-    users: [
-        { id:1, name:'Alice Smith',  email:'alice@demo.com',   role:'Customer',      department:'Sales',     payment:'VISA • Active', clickthrough:40 },
-        { id:2, name:'Bob Jones',    email:'bob@demo.com',     role:'Support Agent', department:'Technical', payment:'MC • Expiring',  clickthrough:10 },
-        { id:3, name:'Charlie Doe',  email:'charlie@demo.com', role:'Customer',      department:'Billing',   payment:'VISA • Active', clickthrough:65 }
-    ],
-
-    tickets: [
-        { id:101, subject:'Login Failure',  status:'Open',        priority:'High',   category:'Account',  applicant:'Alice Smith' },
-        { id:102, subject:'Printer Jam',    status:'Resolved',    priority:'Medium', category:'Hardware', applicant:'Bob Jones'   },
-        { id:103, subject:'Billing Error',  status:'In Progress', priority:'High',   category:'Billing',  applicant:'Charlie Doe' },
-        { id:104, subject:'WiFi Drop',      status:'Open',        priority:'Low',    category:'Network',  applicant:'—'           }
-    ]
+    adminCredentials: { email: 'admin@inkomane.com', pass: 'admin123' },
+    applications: [],
+    tickets: [],
+    users: []
 };
 
-function saveApps() {
-    localStorage.setItem('inkomane_apps', JSON.stringify(state.applications));
+// ──────────────────────────────────────────────
+// API HELPER — strictly fetch
+// ──────────────────────────────────────────────
+async function api(action, method = 'POST', data = {}) {
+  try {
+        let url = '/api?api=' + action;
+        let opts = {
+            method: method,
+            headers: { 'Accept': 'application/json' }
+        };
+
+        if (data instanceof FormData) {
+            opts.body = data;
+        } else {
+            opts.headers['Content-Type'] = 'application/json';
+            if (method === 'GET' && Object.keys(data).length) {
+                url += '&' + new URLSearchParams(data).toString();
+            } else if (method !== 'GET') {
+                opts.body = JSON.stringify(data);
+            }
+        }
+
+        const res = await fetch(url, opts);
+        const json = await res.json();
+        return json;
+    } catch (e) {
+        console.error('API Error:', e);
+        return { success: false, message: 'Connection Error: ' + e.message };
+    }
 }
 
 // ──────────────────────────────────────────────
-// API HELPER
+// DATA LOADERS
 // ──────────────────────────────────────────────
-const API = 'http://127.0.0.1:8000/api';
-async function apiFetch(path, options = {}) {
-    const res = await fetch(API + path, { headers: {'Content-Type':'application/json'}, ...options });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.status === 204 ? null : res.json();
+async function loadSystemData() {
+    const data = await api('get_data', 'GET');
+    if (data.success) {
+        state.users        = data.users        || [];
+        state.tickets      = data.tickets      || [];
+        state.applications = data.applications || [];
+        state.currentUser  = data.auth || null;
+        
+        renderNotifications(data.notifications || []);
+
+        // Initial Routing Logic
+        const lastView = localStorage.getItem('lastView');
+        if (state.currentUser) {
+            // Role-based classification routing
+            redirectByUserRole(state.currentUser);
+        } else {
+            // Not logged in
+            if (!state.currentView) router('home');
+            else if (['admin-dashboard', 'agent-dashboard', 'customer-management', 'applications-queue', 'customer-status'].includes(state.currentView)) {
+                router('login');
+            } else {
+                router(state.currentView);
+            }
+        }
+    }
 }
+
+function renderNotifications(notifs) {
+    const list = document.getElementById('notifList');
+    const badge = document.getElementById('notifBadge');
+    const dot = document.getElementById('notifDot');
+    
+    if (notifs.length > 0) {
+        badge.innerText = notifs.length;
+        badge.style.display = 'block';
+        if (dot) dot.style.display = 'block';
+        
+        list.innerHTML = notifs.map(n => {
+            let icon = 'fa-info-circle';
+            if (n.message.toLowerCase().includes('confirmed')) icon = 'fa-check-circle';
+            if (n.message.toLowerCase().includes('assigned')) icon = 'fa-user-tag';
+            if (n.message.toLowerCase().includes('updated')) icon = 'fa-sync-alt';
+
+            return `
+                <div class="notif-item ${n.is_read ? '' : 'unread'}">
+                    <p style="margin: 0;"><i class="fas ${icon}"></i> ${n.message}</p>
+                    <small style="color: var(--text-dim); font-size: 0.7rem; display: block; margin-top: 4px;">
+                        <i class="far fa-clock" style="font-size: 0.7rem; color: inherit;"></i> ${new Date(n.created_at).toLocaleString()}
+                    </small>
+                </div>
+            `;
+        }).join('');
+    } else {
+        badge.style.display = 'none';
+        if (dot) dot.style.display = 'none';
+        list.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-dim);"><i class="fas fa-bell-slash" style="font-size: 1.5rem; display: block; margin-bottom: 10px; opacity: 0.3;"></i> No new notifications</div>';
+    }
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notifDropdown');
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+async function clearNotifications() {
+    await api('clear_notifications', 'POST');
+    loadSystemData();
+}
+
+// Initial load
+loadSystemData();
 
 // ──────────────────────────────────────────────
 // ROUTER
 // ──────────────────────────────────────────────
 function router(view) {
+    state.currentView = view;
+    localStorage.setItem('lastView', view);
+    
+    const adminViews = ['admin-dashboard', 'customer-management'];
+    const agentViews = ['agent-dashboard', 'applications-queue'];
+    const dashboardViews = [...adminViews, ...agentViews, 'customer-status'];
+
+    // SECURITY: Only the primary admin or promoted admins can access user management
+    const primaryAdminEmail = 'admin@inkomane.com';
+
+    if (view === 'customer-management') {
+        if (!state.currentUser || state.currentUser.role !== 'Admin') {
+            showToast('Access Denied: Only a verified Administrator can manage users.');
+            router('admin-dashboard');
+            return;
+        }
+    }
+
+    if (adminViews.includes(view)) {
+        if (!state.currentUser || state.currentUser.role !== 'Admin') {
+            showToast('Access Denied: Admin role required');
+            router(state.currentUser ? (state.currentUser.role === 'Team Agent' ? 'agent-dashboard' : (state.currentUser.role === 'User' ? 'home' : 'customer-status')) : 'login');
+            return;
+        }
+    }
+
+    if (agentViews.includes(view)) {
+        if (!state.currentUser || (state.currentUser.role !== 'Team Agent' && state.currentUser.role !== 'Admin')) {
+            showToast('Access Denied: Agent role required');
+            router(state.currentUser ? 'customer-status' : 'login');
+            return;
+        }
+    }
+
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-    document.getElementById(view).classList.add('active');
+    const target = document.getElementById(view);
+    if (target) target.classList.add('active');
+
+    // Layout Toggle: Dashboards get Sidebar, Public pages get Top Nav
+    if (dashboardViews.includes(view) && state.currentUser) {
+        document.body.classList.remove('no-sidebar');
+        document.body.classList.add('with-sidebar');
+    } else {
+        document.body.classList.remove('with-sidebar');
+        document.body.classList.add('no-sidebar');
+    }
+
     updateNav();
+
     if (view === 'admin-dashboard')     syncDashboard();
     if (view === 'customer-management') loadUsers();
     if (view === 'applications-queue')  renderAppsTable();
     if (view === 'customer-status')     renderCustomerStatus();
+    if (view === 'agent-dashboard')     renderAgentDashboard();
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
 }
 
 function updateNav() {
-    const nav = document.getElementById('navLinks');
-    let links = `<button onclick="router('home')">Home</button>
-                 <button onclick="router('docs')">Docs</button>`;
+    const topNav = document.getElementById('topNavLinks');
+    const sideNav = document.getElementById('sideNavLinks');
+    
+    // 1. PUBLIC TOP NAV
+    let publicLinks = `
+        <button onclick="router('home')"><i class="fas fa-home"></i> Home</button>
+        <button onclick="router('docs')"><i class="fas fa-book"></i> Docs</button>
+        <button onclick="router('apply')"><i class="fas fa-paper-plane"></i> Apply support</button>
+    `;
+
     if (state.currentUser) {
-        if (state.currentUser.role === 'Admin') {
-            links += `<button onclick="router('admin-dashboard')">Overview</button>
-                      <button onclick="router('applications-queue')">Applications</button>
-                      <button onclick="router('customer-management')">Customers</button>`;
-        } else {
-            links += `<button onclick="router('customer-status')">My Status</button>`;
-        }
-        links += `<button onclick="logout()" style="color:var(--danger)">Logout</button>`;
+        publicLinks += `
+            <button class="btn-dashboard-highlight" onclick="redirectByUserRole(state.currentUser)">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <div style="display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.05); padding:5px 15px; border-radius:30px; border:1px solid var(--glass-border);">
+                <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <span style="font-size:0.9rem; font-weight:500;">${state.currentUser.name.split(' ')[0]}</span>
+                <button onclick="logout()" style="margin:0; padding:0; color:var(--danger); font-size:0.8rem;"><i class="fas fa-power-off"></i></button>
+            </div>
+        `;
     } else {
-        links += `<button onclick="router('login')">Login</button>
-                  <button class="btn-primary" style="margin-left:12px; padding:7px 16px; font-size:0.88rem;" onclick="router('register')">Apply Now</button>`;
+        publicLinks += `
+            <button onclick="router('login')" style="color:var(--accent); font-weight:600;">Login</button>
+            <button class="btn-primary" onclick="router('register')" style="padding:7px 20px; font-size:0.85rem; margin-left:10px;">Staff Signup</button>
+        `;
     }
-    nav.innerHTML = links;
+    
+    if (topNav) topNav.innerHTML = publicLinks;
+
+    // 2. DASHBOARD PROFILE PLACEMENT
+    const sidebarProfile = document.getElementById('sidebarProfile');
+    const headerProfile = document.getElementById('headerProfile');
+    
+    if (state.currentUser) {
+        if (state.currentUser.role === 'Admin' || state.currentUser.role === 'Team Agent') {
+            // ADMIN/AGENT: Bottom Left (Gemini Style)
+            if (sidebarProfile) {
+                sidebarProfile.style.display = 'flex';
+                document.getElementById('sidebarUserName').innerText = state.currentUser.name;
+                document.getElementById('sidebarUserRole').innerText = state.currentUser.role;
+            }
+            if (headerProfile) headerProfile.style.display = 'none';
+        } else {
+            // CUSTOMER: Top Right (ChatGPT Style)
+            if (headerProfile) {
+                headerProfile.style.display = 'flex';
+                document.getElementById('headerUserName').innerText = state.currentUser.name;
+                document.getElementById('headerUserRole').innerText = 'Verified Customer';
+                document.getElementById('headerUserIcon').className = 'fas fa-user';
+            }
+            if (sidebarProfile) sidebarProfile.style.display = 'none';
+        }
+    } else {
+        if (sidebarProfile) sidebarProfile.style.display = 'none';
+        if (headerProfile) headerProfile.style.display = 'none';
+    }
+
+    let sideLinks = `
+        <button onclick="router('home')" id="link-home"><i class="fas fa-home"></i> <span>Home Portal</span></button>
+        <button onclick="router('docs')" id="link-docs"><i class="fas fa-book"></i> <span>Documentation</span></button>
+    `;
+    
+    if (state.currentUser.role === 'Admin') {
+        sideLinks = `
+            <button onclick="openCreateTicketModal()" style="margin: 0 15px 25px; background: rgba(0,210,255,0.1); border: 1px solid var(--accent); border-radius: 30px; padding: 12px 20px; justify-content: flex-start; gap: 15px; color: var(--accent);">
+                <i class="fas fa-plus"></i> <span>Create Ticket</span>
+            </button>
+            <button onclick="router('home')" id="link-home"><i class="fas fa-home"></i> <span>Home Portal</span></button>
+            <button onclick="router('admin-dashboard')" id="link-admin-dashboard"><i class="fas fa-chart-pie"></i> <span>Statistics</span></button>
+            <button onclick="router('customer-management')" id="link-customer-management"><i class="fas fa-users-cog"></i> <span>User Management</span></button>
+            <button onclick="router('docs')" id="link-docs"><i class="fas fa-book"></i> <span>Documentation</span></button>
+        `;
+    } else if (state.currentUser.role === 'Team Agent') {
+        const activeCount = state.tickets.filter(t => t.assigned_to === state.currentUser.name && t.status !== 'Resolved' && t.status !== 'Closed').length;
+        sideLinks = `
+            <button onclick="router('applications-queue')" style="margin: 0 15px 25px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 30px; padding: 12px 20px; justify-content: flex-start; gap: 15px;">
+                <i class="fas fa-clipboard-list" style="color: var(--accent);"></i> <span>Review Queue</span>
+            </button>
+            <button onclick="router('home')" id="link-home"><i class="fas fa-home"></i> <span>Home Portal</span></button>
+            <button onclick="router('agent-dashboard')" id="link-agent-dashboard">
+                <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+                ${activeCount > 0 ? `<span class="notif-badge-sidebar" style="margin-left:auto; background:var(--accent);">${activeCount}</span>` : ''}
+            </button>
+            <button onclick="router('docs')" id="link-docs"><i class="fas fa-book"></i> <span>Documentation</span></button>
+        `;
+    } else if (state.currentUser.role === 'User') {
+        sideLinks += `<button onclick="router('home')" id="link-home-user"><i class="fas fa-user-circle"></i> <span>Staff Portal</span></button>`;
+    } else {
+        // CUSTOMER - NO NEW CHAT BUTTON HERE (MOVED TO TOP RIGHT INSTEAD)
+        sideLinks = `
+            <button onclick="router('home')" id="link-home"><i class="fas fa-home"></i> <span>Home Portal</span></button>
+            <button onclick="router('customer-status')" id="link-customer-status"><i class="fas fa-tasks"></i> <span>My Status</span></button>
+            <button onclick="router('apply')" id="link-apply"><i class="fas fa-paper-plane"></i> <span>New Application</span></button>
+            <button onclick="router('docs')" id="link-docs"><i class="fas fa-book"></i> <span>Documentation</span></button>
+        `;
+    }
+    
+    sideLinks += `<button onclick="logout()" style="color:var(--danger); margin-top:30px;"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>`;
+    
+    if (sideNav) sideNav.innerHTML = sideLinks;
+
+    // Highlight active link in sidebar
+    document.querySelectorAll('.sidebar .nav-links button').forEach(b => b.classList.remove('active-nav'));
+    const activeBtn = document.getElementById('link-' + state.currentView);
+    if (activeBtn) activeBtn.classList.add('active-nav');
 }
+
+
 
 // ──────────────────────────────────────────────
-// AUTH
+// AUTH — ROLE CLASSIFICATION & REDIRECTION
 // ──────────────────────────────────────────────
-function loginAdmin() {
-    state.currentUser = { name:'Admin User', role:'Admin' };
-    showToast('Welcome, Admin!');
-    router('admin-dashboard');
-}
-
-function loginCustomer() {
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    if (!email) return showToast('Please enter your email address');
-
-    const app = state.applications.find(a => a.email.toLowerCase() === email);
-    if (!app) {
-        showToast('No application found. Please register first.');
-        return;
+function redirectByUserRole(user) {
+    if (!user) return router('login');
+    
+    // Persistent View Logic: Check if they have a saved 'current' page for their role
+    const lastView = localStorage.getItem('lastView');
+    const adminViews = ['admin-dashboard', 'customer-management'];
+    const agentViews = ['agent-dashboard', 'applications-queue'];
+    
+    if (user.role === 'Admin') {
+        if (adminViews.includes(lastView)) router(lastView);
+        else router('admin-dashboard');
+    } 
+    else if (user.role === 'Team Agent') {
+        if (agentViews.includes(lastView)) router(lastView);
+        else router('agent-dashboard');
     }
-    state.currentUser = { name: app.name, role:'Customer', email: app.email };
-    showToast('Welcome back, ' + app.name + '!');
-    router('customer-status');
+    else if (user.role === 'User') {
+        router('home');
+    }
+    else {
+        // Customer
+        router('customer-status');
+    }
 }
 
-function logout() {
+async function handleAuthResponse(data) {
+    if (data.success) {
+        state.currentUser = data.user;
+        await loadSystemData(); // Sync full state
+        showToast(`Logged in as ${data.user.role}: ${data.user.name}`);
+        redirectByUserRole(data.user);
+    } else {
+        showToast(data.message);
+    }
+}
+
+async function loginCustomer() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    if (!email || !password) return showToast('Please enter credentials');
+
+    const data = await api('login', 'POST', { email, password });
+    handleAuthResponse(data);
+    
+    if (data.success) {
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPass').value = '';
+    }
+}
+
+async function loginAgent() {
+    const email = document.getElementById('agentEmail').value.trim();
+    const password = document.getElementById('agentPass').value;
+    if (!email || !password) return showToast('Please enter agent credentials');
+
+    const data = await api('login', 'POST', { email, password });
+    handleAuthResponse(data);
+    
+    if (data.success) {
+        document.getElementById('agentEmail').value = '';
+        document.getElementById('agentPass').value = '';
+    }
+}
+
+async function unifiedLogin() {
+    const email = document.getElementById('uniEmail').value.trim();
+    const password = document.getElementById('uniPass').value;
+    if (!email || !password) return showToast('Please enter both email and password');
+
+    const data = await api('login', 'POST', { email, password });
+    handleAuthResponse(data);
+
+    if (data.success) {
+        document.getElementById('uniEmail').value = '';
+        document.getElementById('uniPass').value = '';
+    }
+}
+
+async function unifiedRegister() {
+    const role = document.getElementById('regRole').value;
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPass').value;
+
+    if (!name || !email || !password) return showToast('Fill all required fields');
+    
+    // Safety check: Don't allow public registration of Admins
+    if (role === 'Admin') return showToast('Unauthorized: Admins cannot be created via public registration.');
+
+    const res = await api('register', 'POST', { name, email, password, role });
+    if (res.success) {
+        showToast(res.message);
+        router('login');
+    } else {
+        showToast(res.message);
+    }
+}
+
+async function submitApplication() {
+    const name    = document.getElementById('applyName').value.trim();
+    const email   = document.getElementById('applyEmail').value.trim();
+    const pass    = document.getElementById('applyPass').value;
+    const subject = document.getElementById('applySubject').value.trim();
+    const dept    = document.getElementById('applyDept').value;
+    const desc    = document.getElementById('applyDesc').value.trim();
+    const file    = document.getElementById('applyFile').files[0];
+
+    if (!name || !email || !subject || !pass) return showToast('Please fill all required fields');
+
+    const formData = new FormData();
+    formData.append('role', 'Customer');
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('password', pass);
+    formData.append('subject', subject);
+    formData.append('category', state.regSelectedCat);
+    formData.append('department', dept);
+    formData.append('description', desc);
+    if (file) formData.append('file', file);
+
+    const res = await api('submit_application', 'POST', formData);
+    if (res.success) {
+        document.getElementById('waitName').innerText = name;
+        router('wait-page');
+        showToast('Application submitted successfully!');
+    } else {
+        showToast(res.message);
+    }
+}
+
+function rotateRegCube(d) {
+    state.regCubeRot += d * 90;
+    const cubeId = (state.currentView === 'apply') ? 'applyCube' : 'regCube';
+    const cube = document.getElementById(cubeId);
+    if (cube) cube.style.transform = 'rotateY(' + state.regCubeRot + 'deg)';
+}
+function setRegCat(c) {
+    state.regSelectedCat = c;
+    const id = (state.currentView === 'apply') ? 'applySelectedCat' : 'regSelectedCat';
+    const el = document.getElementById(id);
+    if (el) el.innerText = c;
+}
+
+function toggleRegFields() {
+    // Legacy function, no longer needed as we split sections
+}
+
+async function logout() {
+    await api('logout', 'POST');
     state.currentUser = null;
-    document.getElementById('loginEmail').value = '';
+    localStorage.removeItem('lastView');
     router('home');
 }
 
 // ──────────────────────────────────────────────
 // REGISTER / APPLY
 // ──────────────────────────────────────────────
-function rotateRegCube(d) {
-    state.regCubeRot += d * 90;
-    document.getElementById('regCube').style.transform = `rotateY(${state.regCubeRot}deg)`;
-}
-function setRegCat(c) {
-    state.regSelectedCat = c;
-    document.getElementById('regSelectedCat').innerText = c;
-}
+// Cube logic moved to unified functions above
 
-function submitApplication() {
-    const name    = document.getElementById('regName').value.trim();
-    const email   = document.getElementById('regEmail').value.trim();
-    const dept    = document.getElementById('regDept').value;
-    const subject = document.getElementById('regSubject').value.trim();
-    const desc    = document.getElementById('regDesc').value.trim();
 
-    if (!name)    return showToast('Full name is required');
-    if (!email)   return showToast('Email address is required');
-    if (!subject) return showToast('Issue subject is required');
-
-    // Block duplicate emails
-    if (state.applications.find(a => a.email.toLowerCase() === email.toLowerCase())) {
-        showToast('An application with this email already exists. Log in to check status.');
-        return;
-    }
-
-    const app = {
-        id:          state.nextAppId++,
-        name, email, department: dept,
-        category:    state.regSelectedCat,
-        subject, description: desc,
-        status:      'pending',   // 'pending' | 'confirmed'
-        submittedAt: new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
-    };
-
-    state.applications.push(app);
-    saveApps();
-
-    // Fire-and-forget backend sync
-    apiFetch('/applications', { method:'POST', body: JSON.stringify(app) }).catch(() => {});
-
-    // Reset form
-    ['regName','regEmail','regSubject','regDesc'].forEach(id => document.getElementById(id).value = '');
-    state.regCubeRot = 0;
-    state.regSelectedCat = 'Hardware';
-    document.getElementById('regCube').style.transform = 'rotateY(0deg)';
-    document.getElementById('regSelectedCat').innerText = 'Hardware';
-
-    // Go to wait page
-    document.getElementById('waitName').innerText = name;
-    router('wait-page');
-}
 
 // ──────────────────────────────────────────────
 // CUSTOMER STATUS PAGE
 // ──────────────────────────────────────────────
-function renderCustomerStatus() {
+async function renderCustomerStatus() {
     if (!state.currentUser) return;
-
     const email = state.currentUser.email.toLowerCase();
-    const apps  = state.applications.filter(a => a.email.toLowerCase() === email);
+    const name = state.currentUser.name || 'Customer';
 
-    const banner  = document.getElementById('customerStatusBanner');
-    const cardsEl = document.getElementById('customerApplicationCards');
+    const banner   = document.getElementById('customerStatusBanner');
+    const cardsEl  = document.getElementById('customerApplicationCards');
+    const tickEl   = document.getElementById('customerActiveTickets');
 
-    if (!apps.length) {
-        banner.innerHTML  = '';
-        cardsEl.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No applications found for your email.</p></div>';
-        return;
+    const data = await api('customer_status', 'GET', { email: email });
+    let apps = [], tickets = [];
+
+    if (data.success && !data.fallback) {
+        apps    = data.applications || [];
+        tickets = data.tickets      || [];
+    } else {
+        apps    = state.applications.filter(a => a.email && a.email.toLowerCase() === email);
+        tickets = state.tickets.filter(t => t.applicant_email && t.applicant_email.toLowerCase() === email);
     }
 
-    const confirmed = apps.every(a => a.status === 'confirmed');
+    // Modern Personalized Banner
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good Morning' : hour < 18 ? 'Good Afternoon' : 'Good Evening';
+    
+    banner.innerHTML = `
+        <div class="glass-panel" style="background:linear-gradient(135deg, rgba(0,210,255,0.1), rgba(78,84,200,0.1)); border-left:5px solid var(--accent); margin-bottom:30px; padding:30px;">
+            <h1 style="font-size:1.8rem; margin-bottom:10px;"><i class="fas fa-sparkles" style="color:var(--accent)"></i> ${greeting}, ${name}!</h1>
+            <p style="color:var(--text-dim); font-size:1rem;">Welcome back to your support portal. Here is the latest update on your requests.</p>
+        </div>
+    `;
 
-    // ── Banner: GREEN if confirmed, RED if any are still pending ──
-    banner.innerHTML = confirmed
-        ? `<div class="status-banner confirmed">
-               <div class="s-icon"><i class="fas fa-check-circle"></i></div>
-               <div class="s-body">
-                   <h3>&#127881; Application Confirmed!</h3>
-                   <p>Great news, <strong>${state.currentUser.name}</strong>! Your support request has been confirmed and an agent has been assigned to assist you. Please expect a follow-up soon.</p>
-               </div>
-           </div>`
-        : `<div class="status-banner pending">
-               <div class="s-icon"><i class="fas fa-clock"></i></div>
-               <div class="s-body">
-                   <h3>&#8987; Awaiting Confirmation</h3>
-                   <p>Hi <strong>${state.currentUser.name}</strong>, your application is currently under review. An agent will be assigned shortly. Check back later — this page updates automatically when you log in.</p>
-               </div>
-           </div>`;
+    // Sort apps: Pending first
+    apps.sort((a, b) => (a.status === 'pending' ? -1 : 1));
 
-    // ── Application cards ──
-    cardsEl.innerHTML = apps.map(a => `
-        <div class="applied-card">
-            <div class="ac-left">
-                <h4><i class="fas fa-tag" style="color:var(--accent); margin-right:6px;"></i>${a.subject}</h4>
-                <p>
-                    <i class="fas fa-cube"     style="margin-right:3px;"></i>${a.category}&nbsp;&nbsp;
-                    <i class="fas fa-building" style="margin-right:3px;"></i>${a.department}&nbsp;&nbsp;
-                    <i class="fas fa-calendar" style="margin-right:3px;"></i>${a.submittedAt}
-                </p>
-            </div>
-            <span class="applied-pill ${a.status === 'confirmed' ? 'pill-confirmed' : 'pill-pending'}">
-                <i class="fas ${a.status === 'confirmed' ? 'fa-check' : 'fa-hourglass-half'}"></i>
-                ${a.status === 'confirmed' ? 'Confirmed' : 'Pending'}
-            </span>
-        </div>`).join('');
+    // Application cards (Pending/Review)
+    cardsEl.innerHTML = apps.length
+        ? apps.map(a => {
+            const isPending = a.status === 'pending';
+            return `
+                <div class="applied-card" style="border-left:4px solid ${isPending ? 'var(--warning)' : 'var(--success)'}; background:rgba(255,255,255,0.02);">
+                    <div class="ac-left">
+                        <h4 style="font-size:1.1rem; margin-bottom:5px;">${a.subject}</h4>
+                        <p style="font-size:0.85rem; color:var(--text-dim);"><i class="fas fa-calendar-alt"></i> Submitted: ${new Date(a.submitted_at || a.created_at).toLocaleDateString()} • <span style="color:var(--accent)">${a.category}</span></p>
+                    </div>
+                    <div class="applied-pill ${isPending ? 'pill-pending' : 'pill-confirmed'}" style="padding:8px 20px;">${a.status.toUpperCase()}</div>
+                </div>
+            `;
+        }).join('')
+        : '<div class="empty-state"><i class="fas fa-clipboard-list"></i><p>No applications in review.</p></div>';
+
+    // Ticket cards (Active/Resolved) - THE MAIN FOCUS
+    tickEl.innerHTML = tickets.length
+        ? tickets.map(t => {
+            const isResolved = t.status === 'Resolved' || t.status === 'Closed';
+            const fileLink = t.file_path ? `<a href="/${t.file_path}" target="_blank" style="color:var(--accent); font-size:0.85rem; margin-top:10px; display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:rgba(0,210,255,0.1); padding:6px 12px; border-radius:6px;"><i class="fas fa-paperclip"></i> View Attachment</a>` : '';
+            
+            let agentInfo = '';
+            if (t.agent_name) {
+                let phone = '';
+                if (t.agent_contact) {
+                    try {
+                        const meta = JSON.parse(t.agent_contact);
+                        phone = meta.phone ? ` • <i class="fas fa-phone" style="font-size:0.7rem;"></i> ${meta.phone}` : '';
+                    } catch(e) {}
+                }
+                agentInfo = `
+                    <div style="display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05);">
+                        <div style="width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:0.8rem;">${t.agent_name.charAt(0)}</div>
+                        <p style="color:var(--text-dim); font-size:0.85rem;"><b>Support Agent:</b> ${t.agent_name}${phone}</p>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="applied-card" style="display:block; padding:25px; margin-bottom:20px; border-left: 5px solid ${isResolved ? 'var(--text-dim)' : 'var(--secondary)'}; background:rgba(255,255,255,0.03); transition:0.3s; box-shadow:0 4px 20px rgba(0,0,0,0.15);" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+                        <div>
+                            <span style="font-size:0.75rem; color:var(--accent); text-transform:uppercase; letter-spacing:1px; font-weight:bold;">Ticket #${t.id}</span>
+                            <h3 style="font-size:1.25rem; margin-top:5px; color:white;">${t.subject}</h3>
+                        </div>
+                        <div class="category-tag" style="padding:6px 15px; border-radius:20px; ${isResolved ? 'background:rgba(255,255,255,0.05); color:#888;' : 'background:rgba(0,210,255,0.15); color:var(--accent); border:1px solid var(--accent);'}">
+                            ${isResolved ? '<i class="fas fa-check-circle"></i> ' : '<i class="fas fa-circle-notch fa-spin"></i> '}${t.status}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom:15px; color:var(--text-dim); font-size:0.92rem; line-height:1.5;">
+                        <span style="margin-right:15px;"><i class="fas fa-layer-group"></i> ${t.category}</span>
+                        <span><i class="fas fa-signal"></i> ${t.priority} Priority</span>
+                    </div>
+
+                    ${t.agent_response ? `
+                        <div style="background:rgba(0,210,255,0.06); padding:18px; border-radius:12px; border-left:4px solid var(--accent); margin-bottom:15px; box-shadow:inset 0 0 10px rgba(0,0,0,0.1);">
+                            <p style="font-size:0.8rem; color:var(--accent); font-weight:bold; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-comment-dots"></i> Agent Feedback</p>
+                            <p style="font-size:0.95rem; color:rgba(255,255,255,0.9); line-height:1.6;">${t.agent_response}</p>
+                        </div>
+                    ` : ''}
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        ${agentInfo}
+                        ${fileLink}
+                    </div>
+                </div>
+            `;
+          }).join('')
+        : '<div class="empty-state"><i class="fas fa-ticket-alt"></i><p>You have no active support tickets at the moment.</p></div>';
 }
 
 // ──────────────────────────────────────────────
@@ -817,113 +1524,347 @@ function renderCustomerStatus() {
 function renderAppsTable() {
     const tbody = document.getElementById('appsTableBody');
     if (!state.applications.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>No applications yet.</p></div></td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>No applications yet.</p></div></td></tr>';
         return;
     }
-    tbody.innerHTML = state.applications.map(a => `
-        <tr>
-            <td><b>${a.name}</b></td>
-            <td style="color:var(--text-dim)">${a.email}</td>
-            <td><span class="category-tag">${a.category}</span></td>
-            <td>${a.subject}</td>
-            <td style="color:var(--text-dim); font-size:0.82rem;">${a.submittedAt}</td>
-            <td>
-                <span class="app-badge ${a.status === 'confirmed' ? 'app-confirmed' : 'app-pending'}">
-                    <i class="fas ${a.status === 'confirmed' ? 'fa-check' : 'fa-clock'}"></i>
-                    ${a.status === 'confirmed' ? 'Confirmed' : 'Pending'}
-                </span>
-            </td>
-            <td>
-                ${a.status === 'pending'
-                    ? `<button class="btn-success" style="padding:6px 14px; font-size:0.82rem;" onclick="confirmApp(${a.id})">
-                           <i class="fas fa-check"></i> Confirm
-                       </button>`
-                    : `<span style="color:var(--text-dim); font-size:0.82rem;"><i class="fas fa-check-double"></i> Done</span>`
-                }
-            </td>
-        </tr>`).join('');
+    tbody.innerHTML = state.applications.map(a => {
+        let cls = 'app-pending';
+        if (a.status === 'confirmed') cls = 'app-confirmed';
+        if (a.status === 'rejected')  cls = 'app-pending'; // Keep red for rejected
 
+        let actions = '';
+        if (a.status === 'pending') {
+            actions = `
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-success" style="padding:6px 12px; font-size:0.8rem;" onclick="confirmApp(${a.id})"><i class="fas fa-check"></i></button>
+                    <button class="btn-danger" style="padding:6px 12px; font-size:0.8rem;" onclick="rejectApp(${a.id})"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+        } else {
+            actions = `<span style="color:var(--text-dim); font-size:0.82rem;"><i class="fas ${a.status === 'confirmed' ? 'fa-check-double' : 'fa-times-circle'}"></i> ${a.status}</span>`;
+        }
+        
+        return '<tr><td><b>' + a.name + '</b></td><td style="color:var(--text-dim)">' + a.email + '</td><td><span class="category-tag">' + (a.category||'') + '</span></td><td>' + a.subject + '</td><td style="color:var(--text-dim);font-size:0.82rem;">' + (a.submitted_at||'') + '</td><td><span class="app-badge ' + cls + '">' + a.status + '</span></td><td>' + actions + '</td></tr>';
+    }).join('');
     syncDashboard();
 }
 
-function confirmApp(id) {
-    const app = state.applications.find(a => a.id === id);
-    if (!app) return;
-    app.status = 'confirmed';
-    saveApps();
-    renderAppsTable();
-    showToast(`✔ ${app.name}'s application confirmed!`);
-    apiFetch(`/applications/${id}`, { method:'PUT', body: JSON.stringify({ status:'confirmed' }) }).catch(() => {});
+async function confirmApp(id) {
+    const data = await api('confirm_app', 'POST', { id: id });
+    if (data.success && !data.fallback) {
+        await loadSystemData();
+        renderAppsTable();
+        showToast('Application confirmed');
+    } else if (data.fallback) {
+        const idx = state.applications.findIndex(a => a.id === id);
+        if (idx !== -1) { state.applications[idx].status = 'confirmed'; persistLocal(); }
+        renderAppsTable();
+        showToast('Application confirmed');
+    } else {
+        showToast(data.message);
+    }
+}
+
+async function rejectApp(id) {
+    if (!confirm('Reject this application?')) return;
+    const data = await api('reject_app', 'POST', { id: id });
+    if (data.success) {
+        await loadSystemData();
+        renderAppsTable();
+        showToast('Application rejected');
+    } else {
+        showToast(data.message);
+    }
+}
+
+async function confirmAll() {
+    if (!state.applications.some(a => a.status === 'pending')) return showToast('No pending applications.');
+    if (!confirm('Confirm ALL pending requests?')) return;
+
+    const data = await api('confirm_all', 'POST');
+    if (data.success && !data.fallback) {
+        await loadSystemData();
+        renderAppsTable();
+        showToast(data.message);
+    } else if (data.fallback) {
+        state.applications.forEach(a => { if (a.status === 'pending') a.status = 'confirmed'; });
+        persistLocal();
+        renderAppsTable();
+        showToast('All pending confirmed!');
+    } else {
+        showToast(data.message);
+    }
 }
 
 // ──────────────────────────────────────────────
-// ADMIN — DASHBOARD
+// ADMIN — DASHBOARD SYNC
 // ──────────────────────────────────────────────
 function syncDashboard() {
     document.getElementById('statUsers').innerText     = state.users.length;
     document.getElementById('statTickets').innerText   = state.tickets.length;
     document.getElementById('statPending').innerText   = state.applications.filter(a => a.status === 'pending').length;
     document.getElementById('statConfirmed').innerText = state.applications.filter(a => a.status === 'confirmed').length;
+    
+    renderCategoryStats();
     renderAdminTicketTable();
 }
 
-// ──────────────────────────────────────────────
-// TICKETS — ADMIN TABLE
-// ──────────────────────────────────────────────
-function renderAdminTicketTable() {
-    const tbody = document.querySelector('#adminTicketTable tbody');
-    if (!state.tickets.length) {
-        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-inbox"></i><p>No tickets.</p></div></td></tr>`;
-        return;
-    }
-    tbody.innerHTML = state.tickets.map(t => {
-        const sc = t.status === 'Open' ? 'var(--success)' : t.status === 'Resolved' ? 'var(--danger)' : 'var(--warning)';
-        const pc = t.priority === 'High' ? 'var(--danger)' : t.priority === 'Medium' ? 'var(--warning)' : 'var(--success)';
-        return `<tr>
-            <td>#${t.id}</td>
-            <td>${t.subject}</td>
-            <td style="color:var(--text-dim)">${t.applicant || '—'}</td>
-            <td style="color:${pc}">${t.priority}</td>
-            <td style="color:${sc}">${t.status}</td>
-            <td><button class="btn-configure" onclick="openTicketConfig(${t.id})"><i class="fas fa-edit"></i> Edit</button></td>
-        </tr>`;
+function renderCategoryStats() {
+    const container = document.getElementById('categoryChart');
+    if (!container) return;
+
+    const categories = ['Hardware', 'Software', 'Cloud Services', 'Network', 'Cybersecurity', 'AI & Automation', 'Data Analytics', 'Account', 'Access', 'Other'];
+    const stats = {};
+    categories.forEach(c => stats[c] = { total: 0, resolved: 0 });
+    
+    state.tickets.forEach(t => {
+        if (stats.hasOwnProperty(t.category)) {
+            stats[t.category].total++;
+            if (t.status === 'Resolved' || t.status === 'Closed') {
+                stats[t.category].resolved++;
+            }
+        }
+    });
+
+    const maxTotal = Math.max(...Object.values(stats).map(s => s.total), 1);
+
+    container.innerHTML = categories.map(c => {
+        const s = stats[c];
+        const height = (s.total / (maxTotal * 1.2)) * 100;
+        const progress = s.total > 0 ? Math.round((s.resolved / s.total) * 100) : 0;
+        
+        // Color based on progress
+        const progressColor = progress > 70 ? 'var(--success)' : progress > 30 ? 'var(--warning)' : 'var(--accent)';
+        
+        return `
+            <div class="bar" style="height: ${height}%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: flex-end; position: relative; overflow: visible;">
+                <!-- Progress Fill -->
+                <div style="height: ${progress}%; width: 100%; background: linear-gradient(to top, var(--primary), ${progressColor}); border-radius: 4px; box-shadow: 0 0 15px ${progressColor}44;"></div>
+                
+                <!-- Progress Point/Badge -->
+                <div style="position: absolute; top: -45px; left: 50%; transform: translateX(-50%); text-align: center; width: 100%;">
+                    <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 2px;">${progress}%</div>
+                    <div style="font-weight: bold; color: white; font-size: 1rem;">${s.total}</div>
+                </div>
+                
+                <div class="bar-label" style="bottom: -35px;">${c}</div>
+                
+                <!-- Status Dot -->
+                <div style="position: absolute; bottom: 5px; right: -5px; width: 8px; height: 8px; border-radius: 50%; background: ${progressColor}; box-shadow: 0 0 8px ${progressColor};"></div>
+            </div>
+        `;
     }).join('');
 }
 
+
+
+
+function renderAdminTicketTable() {
+    const tbody = document.querySelector('#adminTicketTable tbody');
+    if (!tbody) return;
+    if (!state.tickets.length) {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-inbox"></i><p>No tickets.</p></div></td></tr>';
+        return;
+    }
+    // Show only the 10 most recent tickets on the dashboard
+    const recentTickets = state.tickets.slice(0, 10);
+    tbody.innerHTML = recentTickets.map(t => {
+        const sc = t.status === 'Open' ? 'var(--success)' : t.status === 'Resolved' ? 'var(--danger)' : 'var(--warning)';
+        const pc = t.priority === 'High' ? 'var(--danger)' : t.priority === 'Medium' ? 'var(--warning)' : 'var(--success)';
+        return `
+            <tr>
+                <td class="col-id">#${t.id}</td>
+                <td title="${t.subject}"><b>${t.subject}</b></td>
+                <td style="color:var(--accent)">${t.assigned_to||'Unassigned'}</td>
+                <td class="col-status" style="color:${pc}">${t.priority||''}</td>
+                <td class="col-status" style="color:${sc}">${t.status||''}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+
+// ──────────────────────────────────────────────
+// ADMIN — CREATE TICKET
+// ──────────────────────────────────────────────
+function openCreateTicketModal() {
+    const sel = document.getElementById('ticketAgent');
+    const agents = state.users.filter(u => u.role === 'Team Agent');
+    sel.innerHTML = agents.length
+        ? agents.map(a => '<option value="' + a.name + '">' + a.name + '</option>').join('')
+        : '<option value="">No Agents Available</option>';
+    document.getElementById('createTicketModal').style.display = 'flex';
+}
+function closeCreateTicketModal() {
+    document.getElementById('createTicketModal').style.display = 'none';
+}
+
+async function submitNewTicket() {
+    const email   = document.getElementById('ticketCustomerEmail').value.trim();
+    const subject = document.getElementById('ticketSubject').value.trim();
+    const agent   = document.getElementById('ticketAgent').value;
+    if (!email || !subject || !agent) return showToast('Please fill all fields');
+
+    const data = await api('create_ticket', 'POST', {
+        email: email, subject: subject,
+        category: document.getElementById('ticketCategory').value,
+        assignedTo: agent,
+        priority: document.getElementById('ticketPriority').value
+    });
+
+    if (data.success && !data.fallback) {
+        await loadSystemData();
+        renderAdminTicketTable();
+        closeCreateTicketModal();
+        showToast('Ticket created!');
+    } else if (data.fallback) {
+        state.tickets.unshift({
+            id: Date.now(), subject, category: document.getElementById('ticketCategory').value,
+            priority: document.getElementById('ticketPriority').value, status: 'Open',
+            applicant_email: email, assigned_to: agent
+        });
+        persistLocal();
+        renderAdminTicketTable();
+        closeCreateTicketModal();
+        showToast('Ticket created!');
+    } else {
+        showToast(data.message);
+    }
+}
+
+// ──────────────────────────────────────────────
+// ADMIN — CONFIGURE TICKET
+// ──────────────────────────────────────────────
 function openTicketConfig(id) {
-    const t = state.tickets.find(x => x.id === id);
+    const t = state.tickets.find(x => x.id == id);
     if (!t) return;
     state.editingTicketId = id;
-    document.getElementById('configTicketId').innerText = `Editing Ticket #${id}`;
-    document.getElementById('configSubject').value  = t.subject;
-    document.getElementById('configStatus').value   = t.status;
-    document.getElementById('configPriority').value = t.priority;
+    document.getElementById('configTicketId').innerText  = 'Editing Ticket #' + id;
+    document.getElementById('configSubject').value       = t.subject || '';
+    document.getElementById('configStatus').value        = t.status || 'Open';
+    document.getElementById('configPriority').value      = t.priority || 'Medium';
+    document.getElementById('configResponse').value      = t.agent_response || '';
     document.getElementById('ticketConfigModal').style.display = 'flex';
 }
 function closeTicketConfig() {
     document.getElementById('ticketConfigModal').style.display = 'none';
     state.editingTicketId = null;
 }
+
 async function saveTicketConfig() {
-    const t = state.tickets.find(x => x.id === state.editingTicketId);
-    if (!t) return;
-    const updated = {
+    const data = await api('update_ticket', 'POST', {
+        id: state.editingTicketId,
         subject:  document.getElementById('configSubject').value.trim(),
         status:   document.getElementById('configStatus').value,
-        priority: document.getElementById('configPriority').value
-    };
-    Object.assign(t, updated);
-    renderAdminTicketTable();
-    closeTicketConfig();
-    showToast('Ticket updated');
-    apiFetch(`/tickets/${state.editingTicketId}`, { method:'PUT', body: JSON.stringify(updated) }).catch(() => {});
+        priority: document.getElementById('configPriority').value,
+        agent_response: document.getElementById('configResponse').value.trim()
+    });
+
+    if (data.success && !data.fallback) {
+        await loadSystemData();
+        if (state.currentUser && state.currentUser.role === 'Team Agent') renderAgentDashboard();
+        else renderAdminTicketTable();
+        closeTicketConfig();
+        showToast('Ticket updated');
+    } else if (data.fallback) {
+        const t = state.tickets.find(x => x.id == state.editingTicketId);
+        if (t) {
+            t.subject  = document.getElementById('configSubject').value.trim();
+            t.status   = document.getElementById('configStatus').value;
+            t.priority = document.getElementById('configPriority').value;
+            persistLocal();
+        }
+        if (state.currentUser && state.currentUser.role === 'Team Agent') renderAgentDashboard();
+        else renderAdminTicketTable();
+        closeTicketConfig();
+        showToast('Ticket updated');
+    } else {
+        showToast(data.message);
+    }
+}
+
+// ──────────────────────────────────────────────
+// AGENT DASHBOARD
+// ──────────────────────────────────────────────
+async function renderAgentDashboard() {
+    if (!state.currentUser) return;
+    const tbody = document.getElementById('agentTicketBody');
+
+    // Populate profile fields
+    document.getElementById('agentProfileName').value = state.currentUser.name || '';
+    document.getElementById('agentProfileEmail').value = state.currentUser.email || '';
+    if (state.currentUser.metadata) {
+        try {
+            const meta = JSON.parse(state.currentUser.metadata);
+            document.getElementById('agentProfilePhone').value = meta.phone || '';
+        } catch(e) {}
+    }
+
+    const data = await api('agent_tickets', 'GET', { agentName: state.currentUser.name });
+    let myTickets = [];
+
+    if (data.success && !data.fallback) {
+        myTickets = data.tickets || [];
+    } else {
+        myTickets = state.tickets.filter(t => t.assigned_to === state.currentUser.name);
+    }
+
+    if (!myTickets.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-clipboard-check"></i><p>No tickets assigned to you yet.</p></div></td></tr>';
+        return;
+    }
+
+    // Sort: Pending/Open first, then Resolved/Closed
+    myTickets.sort((a, b) => {
+        const priority = { 'Open': 0, 'In Progress': 1, 'Resolved': 2, 'Closed': 3 };
+        return (priority[a.status] || 0) - (priority[b.status] || 0);
+    });
+
+
+
+    tbody.innerHTML = myTickets.map(t => {
+        const isDone = t.status === 'Resolved' || t.status === 'Closed';
+        const sc = t.status === 'Open' ? 'var(--success)' : isDone ? 'var(--text-dim)' : 'var(--warning)';
+        const fileIcon = t.file_path ? `<a href="/${t.file_path}" target="_blank" title="View Attachment"><i class="fas fa-paperclip" style="color:var(--accent)"></i></a>` : '';
+        const actionBtn = isDone 
+            ? `<button class="btn-outline" style="padding:5px 10px; font-size:0.75rem;" onclick="openTicketConfig(${t.id})">Reopen</button>`
+            : `<button class="btn-primary" style="padding:5px 10px; font-size:0.75rem;" onclick="openTicketConfig(${t.id})">Update</button>`;
+        
+        return `
+            <tr style="${isDone ? 'opacity: 0.7;' : ''}">
+                <td>#${t.id}</td>
+                <td>${t.applicant_email||''}</td>
+                <td>${t.subject} ${fileIcon}</td>
+                <td style="color:${sc}; font-weight:bold;">
+                    ${isDone ? '<i class="fas fa-check-circle"></i> ' : ''}${t.status||''}
+                </td>
+                <td>${t.priority||''}</td>
+                <td>${actionBtn}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function saveAgentProfile() {
+    const name  = document.getElementById('agentProfileName').value;
+    const email = document.getElementById('agentProfileEmail').value;
+    const phone = document.getElementById('agentProfilePhone').value;
+
+    const res = await api('update_agent_profile', 'POST', { name, email, phone });
+    if (res.success) {
+        showToast('Profile updated!');
+        state.currentUser.name = name;
+        state.currentUser.email = email;
+        await loadSystemData();
+    } else {
+        showToast(res.message);
+    }
 }
 
 // ──────────────────────────────────────────────
 // USERS — CRUD
 // ──────────────────────────────────────────────
 async function loadUsers() {
-    try { state.users = await apiFetch('/users'); } catch (e) { /* use seed */ }
     renderCustomerTable();
     document.getElementById('statUsers').innerText = state.users.length;
 }
@@ -932,34 +1873,24 @@ function renderCustomerTable(list) {
     const tbody = document.getElementById('customerTableBody');
     const users = list || state.users;
     if (!users.length) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-users-slash"></i><p>No users found.</p></div></td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-users-slash"></i><p>No users found.</p></div></td></tr>';
         return;
     }
     tbody.innerHTML = users.map(u => {
-        const ct       = u.clickthrough || 0;
-        const payClass = (u.payment || '').includes('Expiring') ? 'warning' : '';
-        return `<tr>
-            <td><b>${u.name}</b></td>
-            <td style="color:var(--text-dim)">${u.email || '—'}</td>
-            <td><span class="category-tag">${u.department || '—'}</span></td>
-            <td>${u.role || 'Customer'}</td>
-            <td><span class="payment-badge ${payClass}">
-                ${payClass ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle" style="color:var(--success)"></i>'}
-                ${u.payment || '—'}
-            </span></td>
-            <td>
-                <div style="display:flex;align-items:center;gap:7px;">
-                    <div class="clickthrough-container"><div class="clickthrough-bar" style="width:${ct}%"></div></div>
-                    <span style="font-size:0.8rem">${ct}%</span>
-                </div>
-            </td>
-            <td>
-                <div class="action-btns">
-                    <button class="btn-icon btn-warning" title="Edit"   onclick="openEditUserModal(${u.id})"><i class="fas fa-pencil-alt"></i></button>
-                    <button class="btn-icon btn-danger"  title="Delete" onclick="removeUser(${u.id})"><i class="fas fa-trash"></i></button>
-                </div>
-            </td>
-        </tr>`;
+        const ct  = u.clickthrough || 0;
+        const pay = (u.payment || '').includes('Expiring') ? 'warning' : '';
+        const payIcon = pay ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle" style="color:var(--success)"></i>';
+        return '<tr>'
+            + '<td><b>' + (u.name||'') + '</b></td>'
+            + '<td style="color:var(--text-dim)">' + (u.email||'—') + '</td>'
+            + '<td><span class="category-tag">' + (u.department||'—') + '</span></td>'
+            + '<td>' + (u.role||'Customer') + '</td>'
+            + '<td><span class="payment-badge ' + pay + '">' + payIcon + ' ' + (u.payment||'—') + '</span></td>'
+            + '<td><div style="display:flex;align-items:center;gap:7px;"><div class="clickthrough-container"><div class="clickthrough-bar" style="width:' + ct + '%"></div></div><span style="font-size:0.8rem">' + ct + '%</span></div></td>'
+            + '<td><div class="action-btns">'
+            + '<button class="btn-icon btn-warning" title="Edit" onclick="openEditUserModal(' + u.id + ')"><i class="fas fa-pencil-alt"></i></button>'
+            + '<button class="btn-icon btn-danger" title="Delete" onclick="removeUser(' + u.id + ')"><i class="fas fa-trash"></i></button>'
+            + '</div></td></tr>';
     }).join('');
 }
 
@@ -972,94 +1903,189 @@ function filterUsers() {
 function openUserModal() {
     state.editingUserId = null;
     document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add New User';
-    ['editUserId','newName','newEmail'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('editUserId').value = '';
+    document.getElementById('newName').value    = '';
+    document.getElementById('newEmail').value   = '';
     document.getElementById('newRole').value    = 'Customer';
     document.getElementById('newDept').value    = 'Sales';
     document.getElementById('newPayment').value = 'VISA • Active';
     document.getElementById('userModal').style.display = 'flex';
 }
 function openEditUserModal(id) {
-    const u = state.users.find(x => x.id === id);
+    const u = state.users.find(x => x.id == id);
     if (!u) return;
     state.editingUserId = id;
     document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit User';
-    document.getElementById('editUserId').value  = id;
-    document.getElementById('newName').value     = u.name       || '';
-    document.getElementById('newEmail').value    = u.email      || '';
-    document.getElementById('newRole').value     = u.role       || 'Customer';
-    document.getElementById('newDept').value     = u.department || 'Sales';
-    document.getElementById('newPayment').value  = u.payment    || 'VISA • Active';
+    document.getElementById('editUserId').value = id;
+    document.getElementById('newName').value    = u.name       || '';
+    document.getElementById('newEmail').value   = u.email      || '';
+    document.getElementById('newRole').value    = u.role       || 'Customer';
+    document.getElementById('newDept').value    = u.department || 'Sales';
+    document.getElementById('newPayment').value = u.payment    || 'VISA • Active';
     document.getElementById('userModal').style.display = 'flex';
 }
 function closeUserModal() {
     document.getElementById('userModal').style.display = 'none';
     state.editingUserId = null;
 }
+
 async function saveUser() {
     const name    = document.getElementById('newName').value.trim();
     const email   = document.getElementById('newEmail').value.trim();
     const role    = document.getElementById('newRole').value;
     const dept    = document.getElementById('newDept').value;
     const payment = document.getElementById('newPayment').value;
-    if (!name)  return showToast('Name is required');
+    if (!name) return showToast('Name is required');
     if (!email) return showToast('Email is required');
-    const isEdit  = !!state.editingUserId;
-    const payload = { name, email, role, department: dept, payment,
-        clickthrough: isEdit
-            ? (state.users.find(u => u.id === state.editingUserId)?.clickthrough || 0)
+
+    const payload = {
+        name: name, email: email, role: role, department: dept, payment: payment,
+        clickthrough: state.editingUserId
+            ? (state.users.find(u => u.id == state.editingUserId)?.clickthrough || 0)
             : Math.floor(Math.random() * 60) + 10
     };
-    if (isEdit) {
-        const idx = state.users.findIndex(u => u.id === state.editingUserId);
-        if (idx > -1) state.users[idx] = { ...state.users[idx], ...payload };
-        showToast('User updated');
-        apiFetch(`/users/${state.editingUserId}`, { method:'PUT', body: JSON.stringify(payload) }).catch(() => {});
+    if (state.editingUserId) payload.id = state.editingUserId;
+
+    const data = await api('save_user', 'POST', payload);
+
+    if (data.success && !data.fallback) {
+        await loadSystemData();
+        closeUserModal();
+        renderCustomerTable();
+        document.getElementById('statUsers').innerText = state.users.length;
+        showToast(data.message);
+    } else if (data.fallback) {
+        if (state.editingUserId) {
+            const idx = state.users.findIndex(u => u.id == state.editingUserId);
+            if (idx > -1) Object.assign(state.users[idx], payload);
+        } else {
+            state.users.unshift({ id: Date.now(), ...payload });
+        }
+        persistLocal();
+        closeUserModal();
+        renderCustomerTable();
+        document.getElementById('statUsers').innerText = state.users.length;
+        showToast(state.editingUserId ? 'User updated' : 'User added');
     } else {
-        const nu = { id: state.nextUserId++, ...payload };
-        state.users.unshift(nu);
-        showToast('User added');
-        apiFetch('/users', { method:'POST', body: JSON.stringify(payload) })
-            .then(d => { if (d?.id) nu.id = d.id; }).catch(() => {});
+        showToast(data.message);
     }
-    closeUserModal();
-    renderCustomerTable();
-    document.getElementById('statUsers').innerText = state.users.length;
 }
-function removeUser(id) {
-    if (!confirm('Remove this user?')) return;
-    state.users = state.users.filter(u => u.id !== id);
-    renderCustomerTable();
-    document.getElementById('statUsers').innerText = state.users.length;
-    showToast('User removed');
-    apiFetch(`/users/${id}`, { method:'DELETE' }).catch(() => {});
+
+async function removeUser(id) {
+    if (!confirm('Permanently delete this user?')) return;
+
+    const data = await api('delete_user', 'POST', { id: id });
+
+    if (data.success && !data.fallback) {
+        await loadSystemData();
+        renderCustomerTable();
+        document.getElementById('statUsers').innerText = state.users.length;
+        showToast('User removed');
+    } else if (data.fallback) {
+        state.users = state.users.filter(u => u.id != id);
+        persistLocal();
+        renderCustomerTable();
+        document.getElementById('statUsers').innerText = state.users.length;
+        showToast('User removed');
+    } else {
+        showToast(data.message);
+    }
 }
 
 // ──────────────────────────────────────────────
-// DOCS
+// DOCS & UTILITIES
 // ──────────────────────────────────────────────
 function showDoc(k) {
     document.getElementById('docDisplay').innerHTML = docsData[k];
     document.querySelectorAll('.doc-sidebar button').forEach(b => b.classList.remove('active-doc'));
-    document.getElementById('btn-' + k).classList.add('active-doc');
+    const btn = document.getElementById('btn-' + k);
+    if (btn) btn.classList.add('active-doc');
 }
 
-// ──────────────────────────────────────────────
-// TOAST
-// ──────────────────────────────────────────────
 function showToast(m) {
     const x = document.getElementById('toast');
     x.innerText = m;
     x.className = 'show';
-    setTimeout(() => x.className = x.className.replace('show',''), 3000);
+    setTimeout(() => x.className = x.className.replace('show', ''), 3000);
 }
 
-window.onclick = e => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+// Close modals on backdrop click
+window.onclick = function(e) {
+    if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+};
 
 // ──────────────────────────────────────────────
-// INIT
+// DB CONFIG
 // ──────────────────────────────────────────────
+function openDbConfigModal() {
+    document.getElementById('dbConfigModal').style.display = 'flex';
+}
+function closeDbConfigModal() {
+    document.getElementById('dbConfigModal').style.display = 'none';
+}
+async function saveDbConfig() {
+    const data = await api('update_db', 'POST', {
+        host: document.getElementById('dbHost').value,
+        name: document.getElementById('dbName').value,
+        user: document.getElementById('dbUser').value,
+        pass: document.getElementById('dbPass').value
+    });
+    if (data.success) {
+        showToast(data.message);
+        closeDbConfigModal();
+    } else {
+        showToast(data.message);
+    }
+}
+
+// Init
 showDoc('overview');
 updateNav();
+toggleRegFields();
 </script>
+
+</div> <!-- End main-content -->
+
+<footer>
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h3><i class="fas fa-cube" style="color:var(--accent)"></i> INKOMANE</h3>
+            <p>Advanced support solutions for modern enterprises. Empowering teams through AI-driven automation and seamless ticketing workflows.</p>
+            <div class="social-icons" style="margin-top:20px;">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h3>Core Services</h3>
+            <ul style="list-style:none; padding:0;">
+                <li><a href="#">Cloud Infrastructure</a></li>
+                <li><a href="#">Cybersecurity Audit</a></li>
+                <li><a href="#">AI & Automation</a></li>
+                <li><a href="#">Data Analytics</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h3>Resources</h3>
+            <ul style="list-style:none; padding:0;">
+                <li><a href="#" onclick="router('docs')">Documentation</a></li>
+                <li><a href="#">Help Center</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h3>Contact Us</h3>
+            <p><i class="fas fa-map-marker-alt" style="color:var(--accent)"></i> 123 Tech Avenue, Silicon Valley</p>
+            <p><i class="fas fa-phone" style="color:var(--accent)"></i> +1 (555) 000-1234</p>
+            <p><i class="fas fa-envelope" style="color:var(--accent)"></i> support@inkomane.com</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        &copy; 2026 INKOMANE | Advanced Support Ecosystem. All Rights Reserved.
+    </div>
+</footer>
+
 </body>
 </html>

@@ -427,7 +427,67 @@ class ApiRouterController extends Controller
             return response()->json(['success' => true, 'message' => 'Database connection updated successfully']);
         }
 
+        // ── FORGOT PASSWORD ──
+        if ($action === 'forgot_password') {
+            try {
+                $email = $request->input('email');
+                $user = DB::table('users')->where('email', $email)->first();
+                if (!$user) {
+                    return response()->json(['success' => false, 'message' => 'Email not found.']);
+                }
+
+                // Generate a simple token (in a real app, use a secure random string)
+                $token = bin2hex(random_bytes(16));
+                
+                DB::table('password_reset_tokens')->updateOrInsert(
+                    ['email' => $email],
+                    ['token' => $token, 'created_at' => now()]
+                );
+
+                // In a real app, send an email. For this demo, we'll return the token.
+                return response()->json(['success' => true, 'message' => 'Reset link generated!', 'token' => $token]);
+            } catch (\Exception $e) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
+        // ── RESET PASSWORD ──
+        if ($action === 'reset_password') {
+            try {
+                $email = $request->input('email');
+                $token = $request->input('token');
+                $password = $request->input('password');
+
+                $reset = DB::table('password_reset_tokens')
+                    ->where('email', $email)
+                    ->where('token', $token)
+                    ->first();
+
+                if (!$reset) {
+                    return response()->json(['success' => false, 'message' => 'Invalid token or email.']);
+                }
+
+                // Check if token is expired (e.g., 60 minutes)
+                $createdAt = \Carbon\Carbon::parse($reset->created_at);
+                if ($createdAt->addMinutes(60)->isPast()) {
+                    return response()->json(['success' => false, 'message' => 'Token has expired.']);
+                }
+
+                DB::table('users')->where('email', $email)->update([
+                    'password' => bcrypt($password),
+                    'updated_at' => now()
+                ]);
+
+                DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+                return response()->json(['success' => true, 'message' => 'Password reset successfully!']);
+            } catch (\Exception $e) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
         return response()->json(['success' => false, 'message' => 'Invalid action']);
+
     }
 
     private function confirmSingleApp($appId)
