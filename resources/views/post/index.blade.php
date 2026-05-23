@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>INKOMANE | Advanced Support System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1; --secondary: #8b5cf6; --accent: #22d3ee;
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+            --text: #f1f5f9; --text-dim: #94a3b8;
+            --glass-bg: rgba(15,23,42,0.75); --glass-border: rgba(255,255,255,0.08);
+            --nav-bg: rgba(8,12,28,0.97); --card-bg: rgba(17,25,50,0.6);
+            --sidebar-w: 265px; --topbar-h: 64px;
+            --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.07);
+        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+        body{color:var(--text);background:#060c1a;background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(99,102,241,0.15),transparent),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(139,92,246,0.08),transparent);min-height:100vh;overflow-x:hidden;}
+
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes scaleIn{from{transform:scale(0.93);opacity:0}to{transform:scale(1);opacity:1}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes slideInRight{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(110%);opacity:0}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes glow{0%,100%{box-shadow:0 0 12px rgba(99,102,241,0.3)}50%{box-shadow:0 0 24px rgba(99,102,241,0.6)}}
+        .stat-num.updated{animation:scaleIn 0.4s ease;}
+
+        /* ── Real-time notifications ── */
+        #rtNotifStack{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+        .rt-notif{background:rgba(8,12,28,0.97);border:1px solid var(--glass-border);border-left:3px solid var(--accent);border-radius:14px;padding:14px 18px;min-width:290px;max-width:350px;display:flex;align-items:flex-start;gap:12px;pointer-events:all;box-shadow:0 16px 40px rgba(0,0,0,0.6);animation:slideInRight 0.35s ease;backdrop-filter:blur(20px);}
+        .rt-notif.hiding{animation:slideOutRight 0.3s ease forwards;}
+        .rt-notif-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;}
+        .rt-notif-icon.success{background:rgba(16,185,129,0.15);color:var(--success);}
+        .rt-notif-icon.info{background:rgba(34,211,238,0.12);color:var(--accent);}
+        .rt-notif-icon.warning{background:rgba(245,158,11,0.15);color:var(--warning);}
+        .rt-notif-icon.danger{background:rgba(239,68,68,0.15);color:var(--danger);}
+        .rt-notif-body p{margin:0;font-size:0.84rem;color:#fff;line-height:1.4;font-weight:500;}
+        .rt-notif-body small{font-size:0.72rem;color:var(--text-dim);}
+
+        /* ── Topbar ── */
+        .topbar{position:fixed;top:0;left:0;right:0;z-index:1200;height:var(--topbar-h);background:var(--nav-bg);backdrop-filter:blur(28px);border-bottom:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;}
+        .topbar-left,.topbar-center,.topbar-right{display:flex;align-items:center;}
+        .topbar-center{flex:1;justify-content:center;gap:4px;}
+        .topbar-right{gap:10px;}
+        .hamburger{width:40px;height:40px;border-radius:10px;background:var(--surface);border:1px solid var(--glass-border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;flex-shrink:0;transition:0.2s;}
+        .hamburger:hover{background:rgba(99,102,241,0.15);border-color:var(--primary);}
+        .hamburger span{display:block;width:18px;height:2px;background:var(--text-dim);border-radius:2px;transition:0.3s;}
+        .hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+        .hamburger.active span:nth-child(2){opacity:0;}
+        .hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+        .nav-logo{font-size:1.35rem;font-weight:800;letter-spacing:3px;background:linear-gradient(135deg,#fff 0%,var(--accent) 100%);background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;margin-left:14px;flex-shrink:0;}
+        .nav-pill{display:flex;align-items:center;gap:7px;padding:7px 16px;border-radius:8px;background:none;border:none;color:var(--text-dim);font-size:0.84rem;font-weight:500;cursor:pointer;transition:0.2s;white-space:nowrap;position:relative;}
+        .nav-pill:hover{color:var(--accent);background:rgba(34,211,238,0.07);}
+        .nav-pill.active{color:#fff;background:rgba(99,102,241,0.15);}
+        .nav-pill.active::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:18px;height:2px;background:var(--primary);border-radius:2px;}
+        .nav-cta-admin{display:flex;align-items:center;gap:8px;padding:7px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--warning),#e67e22);color:#000;font-weight:700;font-size:0.82rem;cursor:pointer;white-space:nowrap;}
+        .nav-bell{width:40px;height:40px;border-radius:10px;background:var(--surface);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;position:relative;color:var(--text-dim);font-size:1rem;}
+        .nav-bell:hover{background:rgba(34,211,238,0.1);color:var(--accent);}
+        .nav-bell .bell-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--nav-bg);}
+        .notif-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:340px;background:rgba(8,12,28,0.98);backdrop-filter:blur(24px);border:1px solid var(--glass-border);border-radius:16px;display:none;z-index:1300;box-shadow:0 20px 60px rgba(0,0,0,0.6);animation:scaleIn 0.2s ease;}
+        .notif-dropdown.visible{display:block;}
+        .notif-dropdown-header{padding:16px 18px;border-bottom:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:center;}
+        .notif-dropdown-header h4{font-size:0.9rem;color:#fff;font-weight:600;}
+        .notif-dropdown-header button{background:none;border:none;color:var(--accent);font-size:0.78rem;cursor:pointer;}
+        .notif-dropdown-body{max-height:280px;overflow-y:auto;padding:8px;}
+        .notif-item{padding:11px 12px;border-radius:10px;margin-bottom:4px;display:flex;gap:10px;cursor:pointer;transition:0.2s;}
+        .notif-item:hover{background:var(--surface-hover);}
+        .notif-item.unread{background:rgba(99,102,241,0.06);border-left:3px solid var(--primary);}
+        .notif-item .notif-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;background:rgba(34,211,238,0.1);color:var(--accent);}
+        .notif-item .notif-text p{font-size:0.82rem;line-height:1.45;color:#ddd;}
+        .notif-item .notif-text small{font-size:0.7rem;color:var(--text-dim);}
+        .notif-empty{text-align:center;padding:30px;color:var(--text-dim);font-size:0.85rem;}
+        .nav-user{display:flex;align-items:center;gap:9px;padding:5px 14px 5px 6px;border-radius:30px;background:var(--surface);border:1px solid var(--glass-border);cursor:pointer;transition:0.2s;position:relative;}
+        .nav-user:hover{background:var(--surface-hover);}
+        .nav-user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.7rem;}
+        .nav-user-info{line-height:1.2;}
+        .nav-user-name{font-size:0.82rem;font-weight:600;color:#fff;}
+        .nav-user-role{font-size:0.62rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;}
+        .nav-user-chevron{color:var(--text-dim);font-size:0.65rem;margin-left:4px;transition:0.3s;}
+        .nav-user.open .nav-user-chevron{transform:rotate(180deg);}
+        .user-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:230px;background:rgba(8,12,28,0.98);backdrop-filter:blur(24px);border:1px solid var(--glass-border);border-radius:14px;padding:8px;display:none;z-index:1300;box-shadow:0 20px 60px rgba(0,0,0,0.6);animation:scaleIn 0.2s ease;}
+        .user-dropdown.visible{display:block;}
+        .user-dropdown button{display:flex;align-items:center;gap:12px;width:100%;padding:10px 14px;border-radius:9px;background:none;border:none;color:var(--text-dim);font-size:0.84rem;cursor:pointer;transition:0.2s;text-align:left;}
+        .user-dropdown button:hover{background:var(--surface-hover);color:#fff;}
+        .user-dropdown button i{width:18px;text-align:center;font-size:0.88rem;}
+        .user-dropdown .dd-divider{height:1px;background:var(--glass-border);margin:6px 0;}
+        .user-dropdown .dd-logout{color:var(--danger)!important;}
+
+        /* ── Sidebar ── */
+        .sidebar{position:fixed;top:var(--topbar-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--nav-bg);backdrop-filter:blur(28px);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;z-index:1100;overflow-y:auto;transform:translateX(-100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);}
+        .sidebar.open{transform:translateX(0);}
+        .sidebar-section{padding:16px 12px 6px;}
+        .sidebar-section-title{font-size:0.62rem;font-weight:700;color:#3f4a6a;text-transform:uppercase;letter-spacing:1.5px;padding:0 10px;margin-bottom:8px;}
+        .side-link{display:flex;align-items:center;gap:13px;width:100%;padding:10px 14px;border-radius:10px;background:none;border:none;color:var(--text-dim);font-size:0.86rem;font-weight:500;cursor:pointer;transition:0.2s;text-align:left;position:relative;}
+        .side-link i{width:20px;text-align:center;font-size:0.9rem;}
+        .side-link:hover{background:var(--surface);color:#fff;}
+        .side-link.active{background:rgba(99,102,241,0.12);color:#fff;}
+        .side-link.active i{color:var(--primary);}
+        .side-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--primary);border-radius:0 3px 3px 0;}
+        .side-link .side-badge{margin-left:auto;background:var(--primary);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:10px;}
+        .side-divider{height:1px;background:var(--glass-border);margin:8px 16px;}
+        .side-cta{display:flex;align-items:center;gap:11px;width:calc(100% - 24px);margin:6px 12px;padding:11px 14px;border-radius:12px;border:none;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:var(--primary);font-size:0.86rem;font-weight:600;cursor:pointer;transition:0.3s;}
+        .side-cta:hover{background:rgba(99,102,241,0.18);transform:translateX(2px);}
+        .sidebar-bottom{margin-top:auto;padding:14px;border-top:1px solid var(--glass-border);}
+        .sidebar-bottom-user{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:0.2s;}
+        .sidebar-bottom-user:hover{background:var(--surface);}
+
+        /* ── Admin banner ── */
+        .admin-banner{position:fixed;top:var(--topbar-h);left:0;right:0;z-index:1090;background:rgba(245,158,11,0.06);border-bottom:1px solid rgba(245,158,11,0.3);padding:0;max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.4s ease;}
+        .admin-banner.visible{max-height:120px;padding:14px 24px;}
+        .admin-banner-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+        .admin-banner-inner .ab-icon{width:40px;height:40px;border-radius:10px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;color:var(--warning);font-size:1rem;flex-shrink:0;}
+        .admin-banner-inner .ab-text h4{color:var(--warning);font-size:0.88rem;font-weight:600;}
+        .admin-banner-inner .ab-text p{color:var(--text-dim);font-size:0.74rem;}
+        .admin-banner-inner .ab-form{display:flex;gap:8px;flex:1;min-width:280px;flex-wrap:wrap;}
+        .admin-banner-inner .ab-form input{flex:1;min-width:100px;padding:8px 12px;margin:0;background:rgba(0,0,0,0.4);border:1px solid var(--glass-border);color:#fff;border-radius:8px;font-size:0.82rem;}
+        .admin-banner-inner .ab-form button{background:var(--warning);color:#000;padding:8px 16px;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;white-space:nowrap;}
+        .admin-banner-inner .ab-close{background:none;border:none;color:#555;font-size:1.2rem;cursor:pointer;}
+
+        /* ── Layout ── */
+        .page-wrap{padding-top:var(--topbar-h);transition:margin-left 0.35s cubic-bezier(0.4,0,0.2,1);min-height:100vh;display:flex;flex-direction:column;}
+        .page-wrap.shifted{margin-left:var(--sidebar-w);}
+        .view-section{display:none;padding:36px 5%;animation:fadeUp 0.4s ease;max-width:1400px;margin:0 auto;width:100%;}
+        .view-section.active{display:block;flex:1;}
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1050;display:none;cursor:pointer;}
+        .sidebar-overlay.visible{display:block;}
+
+        /* ── Glass panel ── */
+        .glass-panel{background:var(--card-bg);backdrop-filter:blur(16px);border:1px solid var(--glass-border);border-radius:16px;padding:26px;margin-bottom:24px;box-shadow:0 4px 24px rgba(0,0,0,0.3);}
+
+        /* ── Buttons ── */
+        button{cursor:pointer;border:none;outline:none;transition:0.25s;border-radius:9px;padding:10px 18px;font-weight:500;font-size:0.88rem;}
+        .btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;box-shadow:0 4px 16px rgba(99,102,241,0.3);}
+        .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(99,102,241,0.5);}
+        .btn-danger{background:rgba(239,68,68,0.12);color:var(--danger);border:1px solid rgba(239,68,68,0.3);}
+        .btn-danger:hover{background:var(--danger);color:#fff;}
+        .btn-success{background:rgba(16,185,129,0.12);color:var(--success);border:1px solid rgba(16,185,129,0.3);}
+        .btn-success:hover{background:var(--success);color:#fff;}
+        .btn-warning{background:rgba(245,158,11,0.12);color:var(--warning);border:1px solid rgba(245,158,11,0.3);}
+        .btn-warning:hover{background:var(--warning);color:#000;}
+        .btn-outline{background:transparent;border:1px solid var(--primary);color:var(--primary);}
+        .btn-outline:hover{background:var(--primary);color:#fff;}
+        .btn-icon{background:var(--surface);color:#ccc;padding:8px 12px;border-radius:9px;}
+        .btn-icon:hover{background:var(--surface-hover);color:#fff;}
+        .btn-configure{background:rgba(34,211,238,0.08);color:var(--accent);border:1px solid rgba(34,211,238,0.2);padding:5px 12px;font-size:0.83rem;}
+        .btn-configure:hover{background:var(--accent);color:#000;}
+
+        /* ── Forms ── */
+        input,select,textarea{width:100%;padding:11px 14px;margin-top:4px;margin-bottom:14px;background:rgba(0,0,0,0.35);border:1px solid var(--glass-border);color:#fff;border-radius:10px;transition:0.25s;font-size:0.88rem;}
+        input:focus,select:focus,textarea:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(99,102,241,0.15);}
+        select option{background:#0f172a;color:#fff;}
+        label{font-size:0.8rem;color:var(--text-dim);display:block;margin-bottom:2px;font-weight:500;}
+
+        /* ── Inputs w/ icons ── */
+        .input-group{position:relative;margin-bottom:14px;}
+        .input-group input{padding-left:42px;margin-bottom:0;}
+        .input-group .input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:0.9rem;pointer-events:none;}
+
+        /* ── Cards & status badges ── */
+        .center-box{max-width:480px;margin:40px auto;}
+        .customer-login-box{background:rgba(0,0,0,0.2);border-radius:14px;padding:24px;margin-bottom:18px;border:1px solid var(--glass-border);}
+        .applied-card{background:var(--surface);border:1px solid var(--glass-border);border-radius:14px;padding:18px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;transition:0.25s;}
+        .applied-card:hover{background:var(--surface-hover);}
+        .applied-pill{padding:4px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;text-transform:uppercase;}
+        .pill-confirmed{background:rgba(16,185,129,0.15);color:var(--success);border:1px solid rgba(16,185,129,0.3);}
+        .pill-pending{background:rgba(245,158,11,0.15);color:var(--warning);border:1px solid rgba(245,158,11,0.3);}
+        .category-tag{background:var(--surface);padding:3px 10px;border-radius:6px;font-size:0.8rem;}
+        .app-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;text-transform:uppercase;}
+        .app-confirmed{background:rgba(16,185,129,0.12);color:var(--success);border:1px solid rgba(16,185,129,0.25);}
+        .app-pending{background:rgba(245,158,11,0.12);color:var(--warning);border:1px solid rgba(245,158,11,0.25);}
+        .status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;}
+        .badge-open{background:rgba(16,185,129,0.12);color:var(--success);}
+        .badge-progress{background:rgba(245,158,11,0.12);color:var(--warning);}
+        .badge-resolved{background:rgba(148,163,184,0.12);color:#94a3b8;}
+        .badge-closed{background:rgba(100,116,139,0.12);color:#64748b;}
+        .badge-assigned{background:rgba(34,211,238,0.12);color:var(--accent);}
+
+        /* ── Thank you card ── */
+        .thank-you-card{background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(5,150,105,0.08));border:1px solid rgba(16,185,129,0.2);border-radius:14px;padding:20px;margin-bottom:14px;text-align:center;}
+        .thank-you-card h4{color:var(--success);margin-bottom:8px;font-size:0.95rem;}
+        .thank-you-card p{font-size:0.88rem;color:#ddd;margin-bottom:14px;}
+
+        /* ── Wait page ── */
+        .wait-box{text-align:center;padding:60px 20px;}
+        .wait-icon{font-size:4rem;color:var(--primary);margin-bottom:24px;display:block;animation:pulse 2s ease-in-out infinite;}
+        .empty-state{text-align:center;padding:40px;color:var(--text-dim);}
+        .empty-state i{font-size:2.5rem;margin-bottom:14px;opacity:0.25;display:block;}
+
+        /* ── Tables ── */
+        .customer-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+        .customer-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+        .customer-actions select{width:auto;margin:0;padding:8px 14px;}
+        .customer-table{width:100%;border-collapse:separate;border-spacing:0 6px;}
+        .customer-table th{padding:11px 14px;color:#475569;font-weight:600;text-transform:uppercase;font-size:0.72rem;letter-spacing:0.6px;}
+        .customer-table td{background:var(--surface);padding:13px 14px;}
+        .customer-table tr:hover td{background:var(--surface-hover);}
+        .customer-table td:first-child{border-radius:10px 0 0 10px;}
+        .customer-table td:last-child{border-radius:0 10px 10px 0;}
+        .payment-badge{display:inline-flex;align-items:center;gap:5px;font-size:0.85rem;}
+        .payment-badge.warning{color:var(--danger);}
+        .clickthrough-container{width:80px;background:rgba(255,255,255,0.08);height:4px;border-radius:3px;overflow:hidden;}
+        .clickthrough-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:3px;}
+        .action-btns{display:flex;gap:6px;}
+        table{width:100%;border-collapse:collapse;margin-top:10px;}
+        th{text-align:left;padding:11px 10px;border-bottom:1px solid var(--glass-border);color:#475569;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;}
+        td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.87rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        tr:hover{background:var(--surface);}
+        .col-id{width:60px;} .col-status{width:130px;} .col-actions{width:110px;} .col-date{width:160px;}
+        .resolution-history{border-collapse:collapse;width:100%;font-size:0.82rem;}
+        .resolution-history th{padding:10px 12px;text-align:left;color:var(--text-dim);font-weight:600;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--glass-border);}
+        .resolution-history td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;}
+        .resolution-history tr:hover td{background:var(--surface);}
+
+        /* ── Dashboard ── */
+        .dashboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;}
+        .stat-card{border:1px solid var(--glass-border);padding:22px;border-radius:16px;background:var(--card-bg);position:relative;overflow:hidden;transition:0.25s;}
+        .stat-card:hover{transform:translateY(-2px);border-color:rgba(99,102,241,0.3);}
+        .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--accent));opacity:0;transition:0.25s;}
+        .stat-card:hover::before{opacity:1;}
+        .stat-card .sc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:14px;}
+        .stat-num{font-size:2.2rem;font-weight:800;color:#fff;margin-bottom:4px;line-height:1;}
+        .stat-label{font-size:0.8rem;color:var(--text-dim);font-weight:500;}
+        .stat-sub{font-size:0.73rem;margin-top:6px;}
+        .admin-layout{display:grid;grid-template-columns:2.2fr 1fr;gap:22px;}
+
+        /* ── Service counters ── */
+        .service-counter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:22px;}
+        .service-counter{background:var(--surface);border:1px solid var(--glass-border);border-radius:14px;padding:18px 14px;text-align:center;transition:0.25s;}
+        .service-counter:hover{background:var(--surface-hover);}
+        .service-counter .sc-num{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:6px;}
+        .service-counter .sc-label{font-size:0.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.8px;}
+
+        /* ── Cube ── */
+        .scene{width:200px;height:200px;margin:24px auto;perspective:800px;}
+        .cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.8s cubic-bezier(0.4,0,0.2,1);}
+        .cube-face{position:absolute;width:200px;height:200px;background:rgba(99,102,241,0.75);border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.05rem;font-weight:700;backface-visibility:hidden;cursor:pointer;box-shadow:inset 0 0 30px rgba(99,102,241,0.3);user-select:none;}
+        .front{transform:rotateY(0deg) translateZ(100px);}
+        .right{transform:rotateY(90deg) translateZ(100px);}
+        .back{transform:rotateY(180deg) translateZ(100px);}
+        .left{transform:rotateY(-90deg) translateZ(100px);}
+        .top{transform:rotateX(90deg) translateZ(100px);}
+        .bottom{transform:rotateX(-90deg) translateZ(100px);}
+
+        /* ── Session badge ── */
+        .session-badge{display:inline-flex;align-items:center;gap:6px;font-size:0.68rem;color:var(--success);background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:3px 10px;}
+        .session-badge i{font-size:0.55rem;animation:pulse 1.8s ease infinite;}
+
+        /* ── Filter bar ── */
+        .filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;padding:14px 16px;background:rgba(0,0,0,0.15);border-radius:12px;border:1px solid var(--glass-border);}
+        .filter-bar label{font-size:0.78rem;color:var(--text-dim);margin:0;white-space:nowrap;}
+        .filter-bar input[type="date"],.filter-bar select{padding:8px 12px;margin:0;width:auto;min-width:130px;}
+
+        /* ── Docs ── */
+        .doc-container{display:grid;grid-template-columns:230px 1fr;gap:24px;}
+        .doc-sidebar{background:rgba(0,0,0,0.2);padding:18px;border-radius:14px;border:1px solid var(--glass-border);height:fit-content;}
+        .doc-sidebar button{display:block;width:100%;text-align:left;background:none;color:var(--text-dim);padding:11px 12px;margin-bottom:4px;border-radius:9px;border:none;cursor:pointer;font-size:0.86rem;transition:0.2s;}
+        .doc-sidebar button:hover,.doc-sidebar button.active-doc{background:rgba(99,102,241,0.12);color:var(--primary);}
+        .doc-content h2{color:var(--primary);border-bottom:1px solid var(--glass-border);padding-bottom:10px;margin-bottom:18px;}
+
+        /* ── Avatar / Profile ── */
+        .avatar-container{position:relative;width:110px;height:110px;margin:0 auto 20px;background:rgba(99,102,241,0.08);border-radius:50%;border:2px dashed var(--primary);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:0.3s;}
+        .avatar-container:hover{border-color:var(--success);}
+        .avatar-img{width:100%;height:100%;object-fit:cover;}
+        .avatar-placeholder{font-size:2rem;color:var(--text-dim);}
+
+        /* ── Modals ── */
+        .modal{display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+        .modal-content{background:#0d1626;padding:28px;border-radius:18px;width:90%;max-width:440px;border:1px solid var(--glass-border);position:relative;animation:scaleIn 0.25s ease;max-height:85vh;overflow-y:auto;}
+        .close{position:absolute;top:16px;right:18px;font-size:22px;cursor:pointer;color:#555;transition:0.2s;line-height:1;}
+        .close:hover{color:var(--danger);}
+        .modal-content label{font-size:0.82rem;color:var(--text-dim);}
+
+        /* ── Thread ── */
+        .ticket-thread{display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;padding:4px 2px;}
+        .thread-msg{display:flex;gap:10px;}
+        .thread-msg.agent{flex-direction:row-reverse;}
+        .thread-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#fff;}
+        .thread-bubble{max-width:75%;padding:9px 13px;border-radius:12px;font-size:0.84rem;line-height:1.5;}
+        .thread-msg:not(.agent) .thread-bubble{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);border-radius:0 12px 12px 12px;}
+        .thread-msg.agent .thread-bubble{background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);border-radius:12px 0 12px 12px;}
+        .thread-meta{font-size:0.7rem;color:var(--text-dim);margin-top:4px;}
+
+        /* ── Reports ── */
+        .report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:22px;}
+        .report-card{background:var(--surface);border:1px solid var(--glass-border);border-radius:14px;padding:20px;text-align:center;}
+        .report-card .rc-num{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));background-clip:text;-webkit-text-fill-color:transparent;}
+        .report-card .rc-label{font-size:0.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-top:4px;}
+
+        /* ── Assign / attach badges ── */
+        .assign-badge{display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;padding:3px 10px;border-radius:20px;background:rgba(34,211,238,0.1);color:var(--accent);border:1px solid rgba(34,211,238,0.2);}
+        .attach-tag{display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;padding:3px 10px;border-radius:20px;background:rgba(245,158,11,0.1);color:var(--warning);border:1px solid rgba(245,158,11,0.2);margin-top:4px;}
+
+        /* ── File upload area ── */
+        .file-drop-zone{border:2px dashed var(--glass-border);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:0.25s;background:rgba(0,0,0,0.15);}
+        .file-drop-zone:hover,.file-drop-zone.dragover{border-color:var(--primary);background:rgba(99,102,241,0.05);}
+        .file-drop-zone i{font-size:2rem;color:var(--text-dim);margin-bottom:10px;display:block;}
+        .file-drop-zone p{font-size:0.84rem;color:var(--text-dim);}
+        .file-name-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:4px 14px;font-size:0.8rem;color:var(--success);margin-top:10px;}
+
+        /* ── Chart bar ── */
+        .chart-box{height:180px;display:flex;align-items:flex-end;justify-content:space-around;padding-top:40px;border-bottom:1px solid var(--glass-border);}
+        .bar{width:48px;border-radius:8px 8px 0 0;position:relative;background:linear-gradient(180deg,var(--primary),var(--secondary));}
+        .bar-label{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);font-size:0.72rem;color:var(--text-dim);width:80px;text-align:center;}
+        .bar-value{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-weight:700;color:#fff;font-size:0.82rem;}
+
+        /* ── Footer ── */
+        footer{background:rgba(6,12,26,0.95);backdrop-filter:blur(28px);border-top:1px solid var(--glass-border);padding:56px 5% 28px;width:100%;margin-top:auto;}
+        .footer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:40px;margin-bottom:40px;}
+        .footer-col h3{color:var(--accent);margin-bottom:16px;font-size:0.95rem;font-weight:600;}
+        .footer-col p,.footer-col li{color:var(--text-dim);line-height:1.8;font-size:0.86rem;}
+        .footer-col ul{list-style:none;}
+        .footer-col a{color:var(--text-dim);text-decoration:none;transition:0.2s;}
+        .footer-col a:hover{color:var(--accent);}
+        .social-icons a{font-size:1.3rem;margin-right:14px;color:#475569;transition:0.2s;}
+        .social-icons a:hover{color:var(--accent);}
+        .map-frame{width:100%;height:130px;border-radius:10px;filter:invert(90%) hue-rotate(180deg);border:1px solid var(--glass-border);margin-top:10px;}
+        .footer-bottom{text-align:center;padding-top:20px;border-top:1px solid rgba(255,255,255,0.04);font-size:0.8rem;color:#334155;}
+
+        /* ── Toast ── */
+        #toast{visibility:hidden;min-width:260px;background:#0f172a;color:#fff;text-align:center;border-radius:12px;padding:14px 20px;position:fixed;z-index:3000;left:50%;bottom:30px;transform:translateX(-50%);box-shadow:0 8px 30px rgba(0,0,0,0.4);border-left:4px solid var(--primary);font-size:0.9rem;font-weight:500;}
+        #toast.show{visibility:visible;animation:fadeUp 0.4s;}
+
+        /* ── Progress indicator ── */
+        .loading-bar{height:3px;background:linear-gradient(90deg,var(--primary),var(--accent),var(--primary));background-size:200% 100%;animation:shimmer 1.5s linear infinite;border-radius:3px;display:none;}
+        .loading-bar.active{display:block;}
+
+        /* ── API status badge ── */
+        .api-status{display:inline-flex;align-items:center;gap:6px;font-size:0.72rem;padding:3px 10px;border-radius:20px;font-weight:600;}
+        .api-status.connected{background:rgba(16,185,129,0.1);color:var(--success);border:1px solid rgba(16,185,129,0.25);}
+        .api-status.local{background:rgba(245,158,11,0.1);color:var(--warning);border:1px solid rgba(245,158,11,0.25);}
+
+        @media(max-width:900px){.admin-layout{grid-template-columns:1fr;}.doc-container{grid-template-columns:1fr;}.topbar-center{display:none;}:root{--sidebar-w:280px;}}
+        @media(max-width:600px){.nav-user-info{display:none;}.admin-banner-inner{flex-direction:column;}}
+    </style>
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+    <div class="topbar-left">
+        <div class="hamburger" id="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
+        <a class="nav-logo" onclick="router('home')">INKOMANE</a>
+    </div>
+    <div class="topbar-center" id="topbarCenter"></div>
+    <div class="topbar-right" id="topbarRight"></div>
+</header>
+
+<div class="admin-banner" id="adminBanner">
+    <div class="admin-banner-inner">
+        <div class="ab-icon"><i class="fas fa-shield-alt"></i></div>
+        <div class="ab-text"><h4>First-Time Admin Setup Required</h4><p>No administrator found. Create one to secure the system.</p></div>
+        <div class="ab-form">
+            <input type="text" id="navAdminName" placeholder="Full Name">
+            <input type="email" id="navAdminEmail" placeholder="admin@email.com">
+            <input type="password" id="navAdminPass" placeholder="Password">
+            <button onclick="createFirstAdmin()"><i class="fas fa-user-shield"></i> Create Admin</button>
+        </div>
+        <button class="ab-close" onclick="document.getElementById('adminBanner').classList.remove('visible')">&times;</button>
+    </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<nav class="sidebar" id="sidebar"></nav>
+
+<div class="page-wrap" id="pageWrap">
+
+<!-- HOME -->
+<section id="home" class="view-section active">
+    <div style="text-align:center;padding:60px 0 50px;">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);border-radius:20px;padding:5px 16px;font-size:0.78rem;color:var(--primary);font-weight:600;margin-bottom:24px;">
+            <i class="fas fa-circle" style="font-size:0.5rem;animation:pulse 2s infinite;"></i> System Online
+        </div>
+        <h1 style="font-size:3.2rem;margin-bottom:16px;background:linear-gradient(135deg,#fff 0%,var(--accent) 60%,var(--primary) 100%);background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2;font-weight:800;">Next-Gen Support<br>Ticketing System</h1>
+        <p style="color:var(--text-dim);font-size:1.05rem;max-width:640px;margin:0 auto 36px;line-height:1.7;">Streamlined support powered by Laravel. Apply for a ticket, get assigned to an agent, then track your real-time confirmation status.</p>
+        <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn-primary" style="font-size:0.95rem;padding:13px 30px;" onclick="router('login')"><i class="fas fa-sign-in-alt"></i> Get Started</button>
+            <button class="btn-outline" style="font-size:0.95rem;padding:13px 30px;" onclick="router('apply')"><i class="fas fa-paper-plane"></i> Apply for Support</button>
+        </div>
+    </div>
+    <div class="glass-panel">
+        <h2 style="color:var(--primary);margin-bottom:24px;text-align:center;font-size:1.1rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;">How It Works</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;">
+            <div style="text-align:center;padding:20px;">
+                <div style="width:60px;height:60px;border-radius:16px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.4rem;"><i class="fas fa-paper-plane" style="color:var(--primary);"></i></div>
+                <h3 style="margin-bottom:8px;font-size:1rem;">1. Apply</h3>
+                <p style="color:var(--text-dim);font-size:0.88rem;line-height:1.6;">Register and submit your support ticket with full details.</p>
+            </div>
+            <div style="text-align:center;padding:20px;">
+                <div style="width:60px;height:60px;border-radius:16px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.4rem;"><i class="fas fa-hourglass-half" style="color:var(--warning);"></i></div>
+                <h3 style="margin-bottom:8px;font-size:1rem;">2. Get Assigned</h3>
+                <p style="color:var(--text-dim);font-size:0.88rem;line-height:1.6;">An admin reviews your ticket and assigns a support agent.</p>
+            </div>
+            <div style="text-align:center;padding:20px;">
+                <div style="width:60px;height:60px;border-radius:16px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.4rem;"><i class="fas fa-check-circle" style="color:var(--success);"></i></div>
+                <h3 style="margin-bottom:8px;font-size:1rem;">3. Track Status</h3>
+                <p style="color:var(--text-dim);font-size:0.88rem;line-height:1.6;">Log back in anytime to see your real-time ticket status.</p>
+            </div>
+        </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;" id="homeStats"></div>
+</section>
+
+<!-- LOGIN -->
+<section id="login" class="view-section">
+    <div class="center-box">
+        <div class="glass-panel" style="text-align:center;">
+            <div style="width:56px;height:56px;border-radius:16px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.3rem;"><i class="fas fa-shield-alt" style="color:var(--primary);"></i></div>
+            <h2 style="margin-bottom:6px;font-size:1.4rem;">Welcome Back</h2>
+            <p style="color:var(--text-dim);margin-bottom:28px;font-size:0.88rem;">Sign in to access your dashboard</p>
+            <div class="loading-bar" id="loginLoader"></div>
+            <div class="customer-login-box" style="text-align:left;margin-top:12px;">
+                <label>Email Address</label>
+                <div class="input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="uniEmail" placeholder="you@example.com" onkeydown="if(event.key==='Enter')unifiedLogin()">
+                </div>
+                <label>Password</label>
+                <div class="input-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" id="uniPass" placeholder="Your password" onkeydown="if(event.key==='Enter')unifiedLogin()">
+                </div>
+                <button class="btn-primary" style="width:100%;padding:14px;font-size:0.95rem;margin-top:4px;" onclick="unifiedLogin()"><i class="fas fa-sign-in-alt"></i> Login & Access</button>
+            </div>
+            <p style="font-size:0.84rem;color:var(--text-dim);">New here? <a href="#" onclick="router('apply')" style="color:var(--accent);font-weight:600;">Apply for Support →</a></p>
+            <p style="font-size:0.84rem;color:var(--text-dim);margin-top:8px;">Internal staff? <a href="#" onclick="router('register')" style="color:var(--text-dim);text-decoration:underline;">Register account</a></p>
+            <p style="font-size:0.84rem;color:var(--text-dim);margin-top:8px;"><a href="#" onclick="router('forgot-password')" style="color:var(--text-dim);">Forgot password?</a></p>
+        </div>
+    </div>
+</section>
+
+<!-- FORGOT PASSWORD -->
+<section id="forgot-password" class="view-section">
+    <div class="center-box">
+        <div class="glass-panel" style="text-align:center;">
+            <div style="width:56px;height:56px;border-radius:16px;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.3rem;"><i class="fas fa-key" style="color:var(--warning);"></i></div>
+            <h2 style="margin-bottom:6px;">Forgot Password</h2>
+            <p style="color:var(--text-dim);margin-bottom:28px;font-size:0.88rem;">Enter your email to receive a reset link</p>
+            <div class="customer-login-box" style="text-align:left;">
+                <label>Email Address</label>
+                <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="forgotEmail" placeholder="you@example.com"></div>
+                <button class="btn-primary" style="width:100%;padding:14px;" onclick="requestReset()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
+            </div>
+            <p style="font-size:0.84rem;color:var(--text-dim);">Remembered it? <a href="#" onclick="router('login')" style="color:var(--accent);font-weight:600;">Back to Login</a></p>
+        </div>
+    </div>
+</section>
+
+<!-- RESET PASSWORD -->
+<section id="reset-password" class="view-section">
+    <div class="center-box">
+        <div class="glass-panel" style="text-align:center;">
+            <div style="width:56px;height:56px;border-radius:16px;background:rgba(16,185,129,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.3rem;"><i class="fas fa-lock-open" style="color:var(--success);"></i></div>
+            <h2 style="margin-bottom:6px;">Reset Password</h2>
+            <p style="color:var(--text-dim);margin-bottom:28px;font-size:0.88rem;">Enter the token from your email and a new password</p>
+            <div class="customer-login-box" style="text-align:left;">
+                <label>Reset Token</label>
+                <div class="input-group"><i class="fas fa-key input-icon"></i><input type="text" id="resetToken" placeholder="Paste token here"></div>
+                <label>New Password</label>
+                <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="resetPass" placeholder="New password"></div>
+                <button class="btn-primary" style="width:100%;padding:14px;" onclick="resetPassword()"><i class="fas fa-check-circle"></i> Update Password</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- APPLY FOR SUPPORT -->
+<section id="apply" class="view-section">
+    <div class="center-box" style="max-width:540px;">
+        <div class="glass-panel">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                <div style="width:48px;height:48px;border-radius:14px;background:rgba(99,102,241,0.12);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;"><i class="fas fa-paper-plane" style="color:var(--primary);"></i></div>
+                <div><h2 style="font-size:1.3rem;margin-bottom:2px;">Apply for Support</h2><p style="color:var(--text-dim);font-size:0.84rem;">Tell us who you are and describe your issue</p></div>
+            </div>
+            <div class="loading-bar" id="applyLoader"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                <div><label>Full Name *</label><input type="text" id="applyName" placeholder="Alice Smith" style="margin-bottom:0;"></div>
+                <div><label>Email Address *</label><input type="email" id="applyEmail" placeholder="alice@email.com" style="margin-bottom:0;"></div>
+            </div>
+            <div style="margin-top:12px;"><label>Tracking Password *</label><div class="input-group" style="margin-top:4px;"><i class="fas fa-lock input-icon"></i><input type="password" id="applyPass" placeholder="Create a password to track your ticket"></div></div>
+            <label>Department</label>
+            <select id="applyDept">
+                <option value="Sales">Sales</option>
+                <option value="Technical">Technical Support</option>
+                <option value="Billing">Billing</option>
+            </select>
+            <label>Issue Category — rotate the cube to select</label>
+            <div class="scene"><div class="cube" id="applyCube">
+                <div class="cube-face front" onclick="setRegCat('Hardware')">Hardware</div>
+                <div class="cube-face back" onclick="setRegCat('Cloud Services')">Cloud</div>
+                <div class="cube-face right" onclick="setRegCat('Network')">Network</div>
+                <div class="cube-face left" onclick="setRegCat('Cybersecurity')">Security</div>
+                <div class="cube-face top" onclick="setRegCat('AI & Automation')">AI</div>
+                <div class="cube-face bottom" onclick="setRegCat('Data Analytics')">Data</div>
+            </div></div>
+            <p style="text-align:center;margin-bottom:8px;font-size:0.9rem;">Selected: <strong id="applySelectedCat" style="color:var(--primary);">Hardware</strong></p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:18px;">
+                <button class="btn-outline" style="padding:7px 18px;font-size:0.82rem;" onclick="rotateRegCube(-1)">&#8592; Left</button>
+                <button class="btn-outline" style="padding:7px 18px;font-size:0.82rem;" onclick="rotateRegCube(1)">Right &#8594;</button>
+            </div>
+            <label>Priority Level *</label>
+            <select id="applyPriority">
+                <option value="Low">🟢 Low — General inquiry</option>
+                <option value="Medium" selected>🟡 Medium — Needs attention soon</option>
+                <option value="High">🔴 High — Urgent / Critical</option>
+            </select>
+            <label>Issue Subject *</label>
+            <input type="text" id="applySubject" placeholder="Brief description of your issue">
+            <label>Full Description *</label>
+            <textarea id="applyDesc" rows="4" placeholder="Describe your issue in detail — steps to reproduce, error messages, expected vs actual behavior..."></textarea>
+            <label>Attach File (optional)</label>
+            <div class="file-drop-zone" id="applyDropZone" onclick="document.getElementById('applyFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleFileDrop(event)">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to browse or drag & drop a file</p>
+                <div id="applyFileTag" style="display:none;"></div>
+            </div>
+            <input type="file" id="applyFile" style="display:none;" onchange="showFileName(this)">
+
+            <button class="btn-primary" style="width:100%;font-size:0.95rem;padding:14px;margin-top:18px;" onclick="submitApplication()"><i class="fas fa-paper-plane"></i> Submit Application</button>
+            <button class="btn-outline" style="width:100%;margin-top:10px;" onclick="router('login')">Cancel</button>
+        </div>
+    </div>
+</section>
+
+<!-- REGISTER -->
+<section id="register" class="view-section">
+    <div class="center-box" style="max-width:450px;">
+        <div class="glass-panel">
+            <div style="text-align:center;margin-bottom:22px;">
+                <div style="width:56px;height:56px;border-radius:16px;background:rgba(139,92,246,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.3rem;"><i class="fas fa-user-plus" style="color:var(--secondary);"></i></div>
+                <h2 style="margin-bottom:4px;font-size:1.3rem;">Internal Registration</h2>
+                <p style="color:var(--text-dim);font-size:0.86rem;">Staff and administration access</p>
+            </div>
+            <div id="adminTakenNotice" style="display:none;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:12px 16px;margin-bottom:16px;">
+                <p style="margin:0;font-size:0.82rem;color:var(--danger);"><i class="fas fa-shield-alt" style="margin-right:6px;"></i><strong>Admin slot is taken.</strong> Only one administrator is allowed per system.</p>
+            </div>
+            <div class="loading-bar" id="registerLoader"></div>
+            <label style="margin-top:12px;">User Category *</label>
+            <select id="regRole"><option value="Customer">Customer</option><option value="User">General User</option><option value="Team Agent">Team Agent</option></select>
+            <label>Full Name *</label>
+            <div class="input-group"><i class="fas fa-user input-icon"></i><input type="text" id="regName" placeholder="Full Name"></div>
+            <label>Email Address *</label>
+            <div class="input-group"><i class="fas fa-envelope input-icon"></i><input type="email" id="regEmail" placeholder="Email"></div>
+            <label>Password *</label>
+            <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="regPass" placeholder="Password (min 6 characters)"></div>
+            <button class="btn-primary" style="width:100%;font-size:0.95rem;padding:13px;" onclick="unifiedRegister()"><i class="fas fa-check-circle"></i> Create Account</button>
+            <button class="btn-outline" style="width:100%;margin-top:10px;" onclick="router('login')">Cancel</button>
+        </div>
+    </div>
+</section>
+
+<!-- WAIT PAGE -->
+<section id="wait-page" class="view-section">
+    <div class="center-box">
+        <div class="glass-panel">
+            <div class="wait-box">
+                <span class="wait-icon"><i class="fas fa-check-circle" style="color:var(--success);"></i></span>
+                <h2 style="margin-bottom:12px;">Application Submitted!</h2>
+                <p style="color:var(--text-dim);margin-bottom:8px;">Thank you, <strong id="waitName" style="color:#fff;"></strong>. Your support ticket is now in the queue.</p>
+                <p style="color:var(--text-dim);margin-bottom:30px;">Come back and <strong style="color:#fff;">log in with your email</strong> to track your confirmation status.</p>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <button class="btn-primary" style="padding:12px 28px;" onclick="router('login')"><i class="fas fa-sign-in-alt"></i> Track My Status</button>
+                    <button class="btn-outline" style="padding:12px 28px;" onclick="router('home')"><i class="fas fa-home"></i> Back to Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CUSTOMER STATUS -->
+<section id="customer-status" class="view-section">
+    <div style="max-width:720px;margin:0 auto;">
+        <div id="customerStatusBanner"></div>
+        <div class="service-counter-grid" id="customerServiceCounters"></div>
+        <div class="glass-panel">
+            <h3 style="margin-bottom:18px;font-size:1rem;font-weight:600;"><i class="fas fa-ticket-alt" style="color:var(--primary);margin-right:8px;"></i>Active Tickets</h3>
+            <div id="customerActiveTickets"></div>
+            <hr style="border:0;border-top:1px solid var(--glass-border);margin:24px 0;">
+            <h3 style="margin-bottom:18px;font-size:1rem;font-weight:600;"><i class="fas fa-clipboard-list" style="color:var(--primary);margin-right:8px;"></i>Your Applications</h3>
+            <div id="customerApplicationCards"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ADMIN DASHBOARD -->
+<section id="admin-dashboard" class="view-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;">
+        <div>
+            <h1 style="font-size:1.7rem;font-weight:800;margin-bottom:4px;">Dashboard</h1>
+            <p style="color:var(--text-dim);font-size:0.88rem;">Monitor tickets, users and team performance</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="position:relative;"><input type="text" id="adminSearchInput" placeholder="Search tickets..." style="margin:0;padding:9px 14px 9px 38px;border-radius:20px;width:230px;" onkeyup="filterAdminTable()"><i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:0.85rem;"></i></div>
+            <button class="btn-primary" onclick="openCreateTicketModal()"><i class="fas fa-plus"></i> New Ticket</button>
+        </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="stat-card"><div class="sc-icon" style="background:rgba(99,102,241,0.12);"><i class="fas fa-ticket-alt" style="color:var(--primary);"></i></div><div class="stat-num" id="statTickets">0</div><div class="stat-label">Total Tickets</div><div class="stat-sub" style="color:var(--text-dim);">All time</div></div>
+        <div class="stat-card"><div class="sc-icon" style="background:rgba(245,158,11,0.12);"><i class="fas fa-fire" style="color:var(--warning);"></i></div><div class="stat-num" id="statActive">0</div><div class="stat-label">Open / Active</div><div class="stat-sub" style="color:var(--warning);">Needs attention</div></div>
+        <div class="stat-card"><div class="sc-icon" style="background:rgba(16,185,129,0.12);"><i class="fas fa-check-double" style="color:var(--success);"></i></div><div class="stat-num" id="statResolved">0</div><div class="stat-label">Resolved / Closed</div><div class="stat-sub" style="color:var(--success);">Completed</div></div>
+        <div class="stat-card"><div class="sc-icon" style="background:rgba(139,92,246,0.12);"><i class="fas fa-users" style="color:var(--secondary);"></i></div><div class="stat-num" id="statUsers">0</div><div class="stat-label">Total Users</div><div class="stat-sub" style="color:var(--text-dim);">Registered</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:22px;">
+        <div style="display:flex;flex-direction:column;gap:22px;">
+            <div class="glass-panel" style="margin:0;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                    <h3 style="font-size:1rem;font-weight:600;"><i class="fas fa-list" style="color:var(--primary);margin-right:8px;"></i>All Tickets</h3>
+                    <div style="display:flex;gap:8px;">
+                        <select id="adminStatusFilter" onchange="filterAdminTable()" style="margin:0;padding:7px 12px;width:auto;font-size:0.82rem;">
+                            <option value="">All Status</option><option>Open</option><option>Work</option><option>In Progress</option><option>Resolved</option><option>Closed</option>
+                        </select>
+                        <select id="adminPrioFilter" onchange="filterAdminTable()" style="margin:0;padding:7px 12px;width:auto;font-size:0.82rem;">
+                            <option value="">All Priority</option><option>High</option><option>Medium</option><option>Low</option>
+                        </select>
+                    </div>
+                </div>
+                <table><thead><tr><th>ID</th><th>Customer</th><th>Subject</th><th>Category</th><th>Status</th><th>Priority</th><th>Agent</th><th>Actions</th></tr></thead><tbody id="adminTicketBody"></tbody></table>
+            </div>
+            <div class="glass-panel" style="margin:0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                    <h3 style="font-size:1rem;font-weight:600;"><i class="fas fa-history" style="color:var(--primary);margin-right:8px;"></i>Resolution History</h3>
+                    <span id="resolvedCountBadge" style="background:rgba(16,185,129,0.12);color:var(--success);border:1px solid rgba(16,185,129,0.25);padding:3px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;">0 Resolved</span>
+                </div>
+                <table class="resolution-history"><thead><tr><th>ID</th><th>Customer</th><th>Subject</th><th>Agent</th><th>Resolved</th><th>Duration</th><th>Response</th></tr></thead><tbody id="resolutionHistoryBody"></tbody></table>
+            </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:22px;">
+            <div class="glass-panel" style="margin:0;">
+                <h3 style="margin-bottom:16px;font-size:1rem;font-weight:600;"><i class="fas fa-chart-pie" style="color:var(--primary);margin-right:8px;"></i>By Category</h3>
+                <div id="categoryStats"></div>
+            </div>
+            <div class="glass-panel" style="margin:0;">
+                <h3 style="margin-bottom:14px;font-size:1rem;font-weight:600;"><i class="fas fa-users" style="color:var(--secondary);margin-right:8px;"></i>Team Assignment</h3>
+                <div id="assignmentLog"></div>
+            </div>
+            <div class="glass-panel" style="margin:0;">
+                <h3 style="margin-bottom:14px;font-size:1rem;font-weight:600;"><i class="fas fa-flag" style="color:var(--warning);margin-right:8px;"></i>By Priority</h3>
+                <div id="reportByPriority"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ADMIN REPORTING -->
+<section id="admin-reporting" class="view-section">
+    <div style="margin-bottom:28px;"><h1 style="font-size:1.7rem;font-weight:800;margin-bottom:4px;">Reports & Analytics</h1><p style="color:var(--text-dim);font-size:0.88rem;">Ticket trends, team performance and resolution metrics</p></div>
+    <div class="report-grid" id="reportSummaryGrid"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:22px;">
+        <div class="glass-panel" style="margin:0;"><h3 style="margin-bottom:16px;font-size:1rem;font-weight:600;"><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:8px;"></i>Tickets by Status</h3><div id="reportByStatus"></div></div>
+        <div class="glass-panel" style="margin:0;"><h3 style="margin-bottom:16px;font-size:1rem;font-weight:600;"><i class="fas fa-users" style="color:var(--secondary);margin-right:8px;"></i>Tickets by Agent</h3><div id="reportByAgent"></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;">
+        <div class="glass-panel" style="margin:0;"><h3 style="margin-bottom:16px;font-size:1rem;font-weight:600;"><i class="fas fa-flag" style="color:var(--warning);margin-right:8px;"></i>By Priority</h3><div id="reportByPriorityFull"></div></div>
+        <div class="glass-panel" style="margin:0;"><h3 style="margin-bottom:16px;font-size:1rem;font-weight:600;"><i class="fas fa-stopwatch" style="color:var(--danger);margin-right:8px;"></i>Avg. Resolution Time</h3><div id="reportResolutionTime"></div></div>
+    </div>
+</section>
+
+<!-- AGENT DASHBOARD -->
+<section id="agent-dashboard" class="view-section">
+    <div class="dashboard-header">
+        <div><h1 style="font-size:1.7rem;font-weight:800;"><i class="fas fa-headset" style="color:var(--primary);margin-right:10px;"></i>Agent Workspace</h1><p style="color:var(--text-dim);font-size:0.88rem;">Manage your assigned tickets</p></div>
+        <div style="position:relative;"><input type="text" id="agentSearchInput" placeholder="Search tickets..." style="margin:0;padding:9px 14px 9px 38px;border-radius:20px;width:260px;" onkeyup="filterAgentTable()"><i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:0.85rem;"></i></div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
+        <div class="stat-card"><div class="sc-icon" style="background:rgba(99,102,241,0.12);"><i class="fas fa-inbox" style="color:var(--primary);"></i></div><div class="stat-num" id="agentStatTotal">0</div><div class="stat-label">My Assigned</div></div>
+        <div class="stat-card"><div class="sc-icon" style="background:rgba(16,185,129,0.12);"><i class="fas fa-check-circle" style="color:var(--success);"></i></div><div class="stat-num" id="agentStatResolved">0</div><div class="stat-label">Resolved</div></div>
+        <div class="stat-card"><div class="sc-icon" style="background:rgba(245,158,11,0.12);"><i class="fas fa-clock" style="color:var(--warning);"></i></div><div class="stat-num" id="agentStatUnresolved">0</div><div class="stat-label">Unresolved</div></div>
+        <div class="stat-card"><div class="sc-icon" style="background:rgba(239,68,68,0.12);"><i class="fas fa-exclamation-circle" style="color:var(--danger);"></i></div><div class="stat-num" id="agentStatHighPriority">0</div><div class="stat-label">High Priority</div></div>
+    </div>
+    <div class="admin-layout">
+        <div class="glass-panel"><h3 style="margin-bottom:16px;font-size:1rem;font-weight:600;">My Assigned Tickets</h3>
+            <table id="agentTicketTable"><thead><tr><th>ID</th><th>Customer</th><th>Subject</th><th>Status</th><th>Priority</th><th>Date</th><th>Actions</th></tr></thead><tbody id="agentTicketBody"></tbody></table>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <div class="customer-login-box">
+                <h3 style="margin-bottom:16px;font-size:0.95rem;font-weight:600;"><i class="fas fa-id-card" style="color:var(--primary);margin-right:8px;"></i>My Contact Info</h3>
+                <label>Display Name</label><input type="text" id="agentProfileName" placeholder="Public Name">
+                <label>Email</label><input type="email" id="agentProfileEmail" placeholder="agent@email.com">
+                <button class="btn-primary" style="width:100%;" onclick="saveAgentProfile()"><i class="fas fa-save"></i> Update Profile</button>
+            </div>
+            <div class="glass-panel" style="margin:0;border:1px solid rgba(239,68,68,0.2);">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                    <i class="fas fa-heart" style="color:#e74c3c;font-size:1.2rem;animation:pulse 1.5s infinite;"></i>
+                    <h3 style="margin:0;font-size:0.95rem;font-weight:600;color:#e74c3c;">Thank You Messages</h3>
+                    <span id="thankyouCount" style="background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3);padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:700;">0</span>
+                </div>
+                <div id="thankYouList"><div class="empty-state" style="padding:20px;"><i class="fas fa-heart" style="font-size:2rem;opacity:0.15;"></i><p style="font-size:0.84rem;">No messages yet.</p></div></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- APPLICATIONS QUEUE -->
+<section id="applications-queue" class="view-section">
+    <div class="dashboard-header">
+        <div><h1 style="font-size:1.7rem;font-weight:800;"><i class="fas fa-clipboard-list" style="color:var(--primary);margin-right:10px;"></i>Applications Queue</h1><p style="color:var(--text-dim);font-size:0.88rem;">Review and confirm incoming support applications</p></div>
+        <button class="btn-success" onclick="confirmAll()"><i class="fas fa-check-double"></i> Confirm All</button>
+    </div>
+    <div class="glass-panel">
+        <table class="customer-table"><thead><tr><th>Name</th><th>Email</th><th>Category</th><th>Subject</th><th>Priority</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="appsTableBody"></tbody></table>
+    </div>
+</section>
+
+<!-- CUSTOMER MANAGEMENT -->
+<section id="customer-management" class="view-section">
+    <div style="margin-bottom:24px;"><h1 style="font-size:1.7rem;font-weight:800;margin-bottom:4px;">Team & User Management</h1><p style="color:var(--text-dim);font-size:0.88rem;">Manage all registered users</p></div>
+    <div class="glass-panel">
+        <div class="customer-header">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <div style="position:relative;"><input type="text" id="userSearchInput" placeholder="Search users..." style="margin:0;padding:8px 14px 8px 36px;border-radius:20px;width:210px;" onkeyup="filterUsersTable()"><i class="fas fa-search" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:0.82rem;"></i></div>
+                <select id="filterSelect" onchange="filterUsers()" style="margin:0;width:auto;padding:8px 14px;"><option value="all">All Departments</option><option value="Sales">Sales</option><option value="Technical">Technical</option><option value="Billing">Billing</option></select>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn-icon" onclick="loadUsers()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+                <button class="btn-primary" onclick="openUserModal()"><i class="fas fa-user-plus"></i> Add User</button>
+            </div>
+        </div>
+        <table class="customer-table"><thead><tr><th></th><th>Name</th><th>Email</th><th>Phone</th><th>Dept</th><th>Role</th><th>Registered</th><th>Engagement</th><th>Actions</th></tr></thead><tbody id="customerTableBody"><tr><td colspan="9"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div></td></tr></tbody></table>
+    </div>
+</section>
+
+<!-- PROFILE SETTINGS -->
+<section id="profile-settings" class="view-section">
+    <div style="max-width:580px;margin:0 auto;">
+        <h2 style="margin-bottom:22px;font-size:1.4rem;font-weight:700;"><i class="fas fa-user-edit" style="color:var(--primary);margin-right:10px;"></i>Account Settings</h2>
+        <div class="glass-panel">
+            <div style="text-align:center;margin-bottom:24px;">
+                <div class="avatar-container" onclick="document.getElementById('profilePhotoUpload').click()">
+                    <img id="profilePreview" src="" class="avatar-img" style="display:none;">
+                    <i id="profilePlaceholder" class="fas fa-camera avatar-placeholder"></i>
+                </div>
+                <input type="file" id="profilePhotoUpload" style="display:none;" accept="image/*" onchange="previewProfileImage(this)">
+                <p style="font-size:0.78rem;color:var(--text-dim);">Click to change photo</p>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div><label>Full Name</label><input type="text" id="profileName" placeholder="Your name" style="margin-bottom:0;"></div>
+                <div><label>Email</label><input type="email" id="profileEmail" placeholder="Email" style="margin-bottom:0;"></div>
+            </div>
+            <label style="margin-top:14px;">Department</label>
+            <select id="profileDept"><option value="Sales">Sales</option><option value="Technical">Technical</option><option value="Billing">Billing</option></select>
+            <label>New Password <span style="color:var(--text-dim);font-size:0.75rem;">(leave blank to keep current)</span></label>
+            <div class="input-group"><i class="fas fa-lock input-icon"></i><input type="password" id="profileNewPass" placeholder="New password"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:10px;">
+                <button class="btn-outline" onclick="router('home')">Cancel</button>
+                <button class="btn-primary" onclick="updateProfile()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- DOCS -->
+<section id="docs" class="view-section">
+    <h1 style="margin-bottom:28px;font-size:1.7rem;font-weight:800;">Documentation</h1>
+    <div class="doc-container">
+        <div class="doc-sidebar">
+            <button onclick="showDoc('overview')" class="active-doc" id="btn-overview"><i class="fas fa-book" style="margin-right:8px;"></i>System Overview</button>
+            <button onclick="showDoc('functional')" id="btn-functional"><i class="fas fa-cogs" style="margin-right:8px;"></i>Functional Req.</button>
+            <button onclick="showDoc('non-functional')" id="btn-non-functional"><i class="fas fa-tachometer-alt" style="margin-right:8px;"></i>Non-Functional</button>
+            <button onclick="showDoc('api')" id="btn-api"><i class="fas fa-plug" style="margin-right:8px;"></i>API Reference</button>
+        </div>
+        <div class="glass-panel doc-content" id="docDisplay"></div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h3><i class="fas fa-cube" style="margin-right:8px;"></i>INKOMANE</h3>
+            <p>Advanced support solutions for modern enterprises. Powered by Laravel with real-time ticketing workflows.</p>
+            <div class="social-icons" style="margin-top:18px;">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h3>Services</h3>
+            <ul><li><a href="#">Cloud Infrastructure</a></li><li><a href="#">Cybersecurity Audit</a></li><li><a href="#">AI & Automation</a></li><li><a href="#">Data Analytics</a></li></ul>
+        </div>
+        <div class="footer-col">
+            <h3>Resources</h3>
+            <ul><li><a href="#" onclick="router('docs')">Documentation</a></li><li><a href="#">Help Center</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li></ul>
+        </div>
+        <div class="footer-col">
+            <h3>Contact Us</h3>
+            <p><i class="fas fa-map-marker-alt" style="color:var(--accent);margin-right:6px;"></i> 123 Tech Avenue, Silicon Valley</p>
+            <p style="margin-top:6px;"><i class="fas fa-phone" style="color:var(--accent);margin-right:6px;"></i> +1 (555) 000-1234</p>
+            <p style="margin-top:6px;"><i class="fas fa-envelope" style="color:var(--accent);margin-right:6px;"></i> support@inkomane.com</p>
+        </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 INKOMANE | Advanced Support Ecosystem. All Rights Reserved.</div>
+</footer>
+
+</div><!-- /page-wrap -->
+
+<!-- MODALS -->
+<div id="userModal" class="modal"><div class="modal-content"><span class="close" onclick="closeUserModal()">&times;</span><h3 id="userModalTitle" style="margin-bottom:20px;font-size:1.1rem;"><i class="fas fa-user-plus" style="color:var(--primary);margin-right:8px;"></i> Add User</h3><input type="hidden" id="editUserId"><label>Full Name *</label><input type="text" id="newName" placeholder="Full Name"><label>Email *</label><input type="email" id="newEmail" placeholder="Email"><label>Phone</label><input type="text" id="newPhone" placeholder="+1 555 000 1234"><label>Role</label><select id="newRole"><option value="Customer">Customer</option><option value="User">User</option><option value="Team Agent">Team Agent</option><option value="Admin">Admin</option></select><label>Department</label><select id="newDept"><option value="Sales">Sales</option><option value="Technical">Technical</option><option value="Billing">Billing</option></select><button class="btn-primary" style="width:100%;margin-top:4px;" onclick="saveUser()"><i class="fas fa-save"></i> Save User</button></div></div>
+
+<div id="createTicketModal" class="modal"><div class="modal-content"><span class="close" onclick="closeCreateTicketModal()">&times;</span><h3 style="margin-bottom:20px;font-size:1.1rem;"><i class="fas fa-plus-circle" style="color:var(--primary);margin-right:8px;"></i>Create Ticket</h3><label>Customer Email</label><input type="email" id="ticketCustomerEmail" placeholder="customer@example.com"><label>Subject</label><input type="text" id="ticketSubject" placeholder="Subject"><label>Category</label><select id="ticketCategory"><option>Hardware</option><option>Software</option><option>Cloud Services</option><option>Network</option><option>Cybersecurity</option><option>AI & Automation</option><option>Data Analytics</option><option>Billing</option></select><label>Assign Agent</label><select id="ticketAgent"></select><label>Priority</label><select id="ticketPriority"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select><button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitNewTicket()"><i class="fas fa-check"></i> Create & Assign</button></div></div>
+
+<div id="ticketConfigModal" class="modal"><div class="modal-content" style="max-width:560px;"><span class="close" onclick="closeTicketConfig()">&times;</span><h3 style="margin-bottom:6px;font-size:1.1rem;"><i class="fas fa-edit" style="color:var(--primary);margin-right:8px;"></i>Manage Ticket</h3><p id="configTicketId" style="color:var(--primary);font-size:0.85rem;margin-bottom:16px;"></p><label>Subject</label><input type="text" id="configSubject"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div><label>Status</label><select id="configStatus"><option value="Open">🟢 Open</option><option value="Work">Work</option><option value="In Progress">🟡 In Progress</option><option value="Pending Customer Response">🟣 Pending Response</option><option value="Resolved">✅ Resolved</option><option value="Closed">🔒 Closed</option></select></div><div><label>Priority</label><select id="configPriority"><option value="Low">🟢 Low</option><option value="Medium">🟡 Medium</option><option value="High">🔴 High</option></select></div></div><label>Reassign Agent</label><select id="configAgent"><option value="">— Keep current agent —</option></select><label>Agent Response / Note</label><textarea id="configResponse" placeholder="Write a response or internal note..." style="height:80px;resize:vertical;"></textarea><div id="ticketThreadPanel" style="margin-bottom:14px;"><p style="font-size:0.78rem;color:var(--accent);font-weight:600;margin-bottom:8px;"><i class="fas fa-comments" style="margin-right:6px;"></i>Communication Thread</p><div class="ticket-thread" id="ticketThreadList"></div><div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="threadMsgInput" placeholder="Message to customer..." style="margin:0;flex:1;padding:8px 12px;font-size:0.82rem;"><button class="btn-primary" style="padding:8px 12px;font-size:0.8rem;" onclick="sendThreadMessage()"><i class="fas fa-paper-plane"></i></button></div></div><button class="btn-primary" style="width:100%;" onclick="saveTicketConfig()"><i class="fas fa-save" style="margin-right:6px;"></i>Update Ticket</button></div></div>
+
+<div id="thankYouModal" class="modal"><div class="modal-content" style="max-width:480px;border-color:rgba(239,68,68,0.3);"><span class="close" onclick="document.getElementById('thankYouModal').style.display='none'">&times;</span><div style="text-align:center;margin-bottom:18px;"><i class="fas fa-heart" style="font-size:2.5rem;color:#e74c3c;animation:pulse 1.5s infinite;"></i><h3 style="margin-top:10px;color:#e74c3c;font-size:1.1rem;">Thank You Message</h3></div><div id="thankYouModalBody" style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:18px;font-size:0.9rem;line-height:1.7;color:#fff;min-height:80px;"></div><div id="thankYouModalMeta" style="margin-top:12px;font-size:0.78rem;color:var(--text-dim);text-align:right;"></div></div></div>
+
+<div id="toast">Message</div>
+<div id="rtNotifStack"></div>
+
+<script>
+// ── Docs data ─────────────────────────────────────────────────────────────────
+const docsData = {
+    overview: '<h2>System Overview</h2><p>INKOMANE is a Laravel-powered application-based support ticketing system with real-time dashboards, role-based access, and full database integration.</p><ul style="margin-top:14px;line-height:2;color:var(--text-dim);"><li><strong style="color:#fff;">Customers</strong> — submit applications, track ticket status</li><li><strong style="color:#fff;">Team Agents</strong> — manage assigned tickets, communicate with customers</li><li><strong style="color:#fff;">Admins</strong> — full system control, user management, reports</li></ul>',
+    functional: '<h2>Functional Requirements</h2><ul style="line-height:2.2;color:var(--text-dim);"><li>Application-based ticket submission with file upload</li><li>Role-based authentication via Laravel Auth</li><li>Admin applications queue with auto-assignment</li><li>Real-time dashboard metrics via Laravel API</li><li>Communication thread per ticket</li><li>Resolution history and analytics</li></ul>',
+    'non-functional': '<h2>Non-Functional Requirements</h2><ul style="line-height:2.2;color:var(--text-dim);"><li>Laravel Eloquent ORM for all DB operations</li><li>CSRF protection on all forms</li><li>Session-based authentication with Laravel Sanctum</li><li>Responsive design — mobile & desktop</li><li>Sub-200ms API response time target</li></ul>',
+    api: '<h2>API Reference</h2><p style="color:var(--text-dim);margin-bottom:14px;">All endpoints require CSRF token in header. Authenticated routes need active Laravel session.</p><table style="width:100%;font-size:0.84rem;"><thead><tr><th style="padding:8px;border-bottom:1px solid var(--glass-border);color:var(--accent);">Method</th><th style="padding:8px;border-bottom:1px solid var(--glass-border);color:var(--accent);">Endpoint</th><th style="padding:8px;border-bottom:1px solid var(--glass-border);color:var(--accent);">Description</th></tr></thead><tbody><tr><td style="padding:8px;color:#10b981;">POST</td><td style="padding:8px;font-family:monospace;">/login</td><td style="padding:8px;color:var(--text-dim);">Unified login</td></tr><tr><td style="padding:8px;color:#10b981;">POST</td><td style="padding:8px;font-family:monospace;">/register</td><td style="padding:8px;color:var(--text-dim);">Register user</td></tr><tr><td style="padding:8px;color:#10b981;">POST</td><td style="padding:8px;font-family:monospace;">/applications</td><td style="padding:8px;color:var(--text-dim);">Submit application</td></tr><tr><td style="padding:8px;color:#3b82f6;">GET</td><td style="padding:8px;font-family:monospace;">/api/tickets</td><td style="padding:8px;color:var(--text-dim);">List tickets</td></tr><tr><td style="padding:8px;color:#3b82f6;">GET</td><td style="padding:8px;font-family:monospace;">/api/users</td><td style="padding:8px;color:var(--text-dim);">List users (admin)</td></tr><tr><td style="padding:8px;color:#f59e0b;">PUT</td><td style="padding:8px;font-family:monospace;">/api/tickets/{id}</td><td style="padding:8px;color:var(--text-dim);">Update ticket</td></tr></tbody></table>'
+};
+
+// ── Laravel API helper ────────────────────────────────────────────────────────
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+let usingLaravelBackend = false; // flips to true if API responds
+
+const API = {
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+    async get(url) {
+        const r = await fetch(url, { headers: this.headers, credentials: 'same-origin' });
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+    },
+    async post(url, data) {
+        const r = await fetch(url, { method: 'POST', headers: this.headers, body: JSON.stringify(data), credentials: 'same-origin' });
+        return r.json();
+    },
+    async put(url, data) {
+        const r = await fetch(url, { method: 'PUT', headers: this.headers, body: JSON.stringify(data), credentials: 'same-origin' });
+        return r.json();
+    },
+    async delete(url) {
+        const r = await fetch(url, { method: 'DELETE', headers: this.headers, credentials: 'same-origin' });
+        return r.json();
+    },
+    async postForm(url, formData) {
+        const r = await fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }, body: formData, credentials: 'same-origin' });
+        return r.json();
+    }
+};
+
+// ── Security helpers ─────────────────────────────────────────────────────────
+async function hashPassword(password) {
+    const enc = new TextEncoder().encode(password);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+async function verifyPassword(plain, hash) {
+    return (await hashPassword(plain)) === hash;
+}
+// XSS sanitizer — escapes HTML special chars before inserting user content into innerHTML
+function esc(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── Local DB (fallback when Laravel not connected) ────────────────────────────
+// ⚠️  Bump DB_VERSION whenever migrations are recreated — this wipes stale localStorage automatically.
+const DB_VERSION  = 2;
+const DB_KEY      = 'inkomane_db';
+const DB_VER_KEY  = 'inkomane_db_version';
+const RR_AGENT_KEY = 'inkomane_rr_agent_index';
+
+const DB_DEFAULTS = {
+    users:       [],   // fresh — no hardcoded seed users
+    tickets:     [],
+    applications:[],
+    activityLog: [],
+    ticketHistory:[],
+    thanking:    []
+};
+
+function loadDB() {
+    try {
+        const storedVersion = parseInt(localStorage.getItem(DB_VER_KEY) || '0', 10);
+        if (storedVersion !== DB_VERSION) {
+            // Migration table(s) changed — nuke all stale local data
+            console.warn(`[INKOMANE] DB version mismatch (stored: ${storedVersion}, current: ${DB_VERSION}). Clearing stale localStorage.`);
+            localStorage.removeItem(DB_KEY);
+            localStorage.removeItem('inkomane_session');
+            localStorage.removeItem('inkomane_last_user');
+            localStorage.setItem(DB_VER_KEY, String(DB_VERSION));
+            return JSON.parse(JSON.stringify(DB_DEFAULTS));
+        }
+        const raw = localStorage.getItem(DB_KEY);
+        if (raw) return Object.assign({}, DB_DEFAULTS, JSON.parse(raw));
+    } catch(e) {
+        console.warn('[INKOMANE] loadDB error, resetting.', e);
+    }
+    return JSON.parse(JSON.stringify(DB_DEFAULTS));
+}
+
+function saveDB() {
+    try {
+        localStorage.setItem(DB_KEY, JSON.stringify(mockData));
+        localStorage.setItem(DB_VER_KEY, String(DB_VERSION));
+    } catch(e) {}
+}
+
+const state = { currentUser: null, currentView: 'home', regCubeRot: 0, regSelectedCat: 'Hardware', editingTicketId: null, editingUserId: null, sidebarOpen: false, notifications: [] };
+const mockData = loadDB();
+
+// ── File upload helpers ───────────────────────────────────────────────────────
+const ALLOWED_FILE_TYPES = ['image/jpeg','image/png','image/gif','application/pdf','text/plain','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/zip'];
+const MAX_FILE_SIZE_MB = 10;
+
+function showFileName(input) {
+    const tag = document.getElementById('applyFileTag');
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+            showToast('File type not allowed. Use JPG, PNG, PDF, DOC, TXT or ZIP.');
+            input.value = ''; tag.style.display = 'none'; return;
+        }
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            showToast(`File too large. Max size is ${MAX_FILE_SIZE_MB}MB.`);
+            input.value = ''; tag.style.display = 'none'; return;
+        }
+        tag.style.display = 'inline-flex';
+        tag.innerHTML = `<i class="fas fa-paperclip"></i> ${esc(file.name)} <span style="color:var(--text-dim);margin-left:4px;">(${(file.size/1024/1024).toFixed(1)}MB)</span>`;
+        tag.className = 'file-name-tag';
+    }
+}
+function handleFileDrop(e) {
+    e.preventDefault();
+    document.getElementById('applyDropZone').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('applyFile').files = dt.files;
+        showFileName(document.getElementById('applyFile'));
+    }
+}
+
+// ── Nav & sidebar ─────────────────────────────────────────────────────────────
+function toggleSidebar() { state.sidebarOpen = !state.sidebarOpen; document.getElementById('sidebar').classList.toggle('open', state.sidebarOpen); document.getElementById('pageWrap').classList.toggle('shifted', state.sidebarOpen); document.getElementById('hamburger').classList.toggle('active', state.sidebarOpen); document.getElementById('sidebarOverlay').classList.toggle('visible', state.sidebarOpen); }
+function closeSidebar() { state.sidebarOpen = false; document.getElementById('sidebar').classList.remove('open'); document.getElementById('pageWrap').classList.remove('shifted'); document.getElementById('hamburger').classList.remove('active'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
+function toggleNotifDropdown(e) { e.stopPropagation(); document.getElementById('notifDropdown')?.classList.toggle('visible'); document.getElementById('userDropdown')?.classList.remove('visible'); }
+function toggleUserDropdown(e) { e.stopPropagation(); document.getElementById('userDropdown')?.classList.toggle('visible'); document.getElementById('notifDropdown')?.classList.remove('visible'); document.querySelector('.nav-user')?.classList.toggle('open', document.getElementById('userDropdown')?.classList.contains('visible')); }
+document.addEventListener('click', () => { document.getElementById('notifDropdown')?.classList.remove('visible'); document.getElementById('userDropdown')?.classList.remove('visible'); document.querySelector('.nav-user')?.classList.remove('open'); });
+
+function buildNav() {
+    const center = document.getElementById('topbarCenter');
+    const right = document.getElementById('topbarRight');
+    const sidebar = document.getElementById('sidebar');
+    const user = state.currentUser;
+    const hasAdmin = mockData.users.some(u => u.role === 'Admin');
+    const v = state.currentView;
+    const pill = (view, icon, label) => `<button class="nav-pill ${v===view?'active':''}" onclick="router('${view}')"><i class="fas ${icon}"></i> ${label}</button>`;
+    const sideLink = (view, icon, label, badge='') => `<button class="side-link ${v===view?'active':''}" onclick="router('${view}');closeSidebar();"><i class="fas ${icon}"></i> ${label}${badge}</button>`;
+
+    let cHTML = '';
+    if (!user) { cHTML += pill('home','fa-home','Home'); cHTML += pill('docs','fa-book','Docs'); cHTML += pill('apply','fa-paper-plane','Apply'); if (!hasAdmin) cHTML += `<button class="nav-cta-admin" onclick="router('register')"><i class="fas fa-user-shield"></i> Register Admin</button>`; }
+    else if (user.role === 'Admin') { cHTML += pill('home','fa-home','Home'); cHTML += pill('admin-dashboard','fa-chart-line','Dashboard'); cHTML += pill('customer-management','fa-users-cog','Users'); cHTML += pill('admin-reporting','fa-chart-bar','Reports'); cHTML += pill('docs','fa-book','Docs'); }
+    else if (user.role === 'Team Agent') { cHTML += pill('home','fa-home','Home'); cHTML += pill('agent-dashboard','fa-headset','Workspace'); cHTML += pill('applications-queue','fa-clipboard-list','Queue'); cHTML += pill('docs','fa-book','Docs'); }
+    else { cHTML += pill('home','fa-home','Home'); cHTML += pill('customer-status','fa-tasks','My Status'); cHTML += pill('apply','fa-paper-plane','New Ticket'); cHTML += pill('docs','fa-book','Docs'); }
+    center.innerHTML = cHTML;
+
+    let rHTML = '';
+    const backendBadge = usingLaravelBackend ? '<span class="api-status connected"><i class="fas fa-circle" style="font-size:0.5rem;"></i> Laravel DB</span>' : '<span class="api-status local"><i class="fas fa-circle" style="font-size:0.5rem;"></i> Local</span>';
+    rHTML += backendBadge;
+    if (user) {
+        const unread = state.notifications.filter(n => !n.read).length;
+        rHTML += `<div style="position:relative;"><div class="nav-bell" onclick="toggleNotifDropdown(event)"><i class="fas fa-bell"></i>${unread > 0 ? '<div class="bell-dot"></div>' : ''}</div><div class="notif-dropdown" id="notifDropdown"><div class="notif-dropdown-header"><h4>Notifications</h4><button onclick="clearNotifications()">Clear All</button></div><div class="notif-dropdown-body">${state.notifications.length ? state.notifications.map(n => `<div class="notif-item ${n.read?'':'unread'}"><div class="notif-icon"><i class="fas fa-bell"></i></div><div class="notif-text"><p>${esc(n.message)}</p><small>${esc(n.time||'Just now')}</small></div></div>`).join('') : '<div class="notif-empty"><i class="fas fa-bell-slash"></i><br>No notifications</div>'}</div></div></div>`;
+        const ini = user.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+        rHTML += `<div style="position:relative;"><div class="nav-user" onclick="toggleUserDropdown(event)"><div class="nav-user-avatar">${esc(ini)}</div><div class="nav-user-info"><div class="nav-user-name">${esc(user.name.split(' ')[0])}</div><div class="nav-user-role">${esc(user.role)}</div></div><i class="fas fa-chevron-down nav-user-chevron"></i></div><div class="user-dropdown" id="userDropdown"><button onclick="router('profile-settings')"><i class="fas fa-user-circle"></i> Account Settings</button><button onclick="router('docs')"><i class="fas fa-book"></i> Documentation</button><div class="dd-divider"></div><button class="dd-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></div></div>`;
+    } else {
+        rHTML += `<button class="btn-outline" style="padding:7px 18px;font-size:0.84rem;border-radius:20px;" onclick="router('login')"><i class="fas fa-sign-in-alt"></i> Login</button>`;
+        rHTML += `<button class="btn-primary" style="padding:7px 18px;font-size:0.84rem;border-radius:20px;" onclick="router('register')"><i class="fas fa-user-plus"></i> Sign Up</button>`;
+    }
+    right.innerHTML = rHTML;
+
+    let sHTML = '';
+    if (user && user.role === 'Admin') {
+        sHTML += `<div class="sidebar-section"><div class="sidebar-section-title">Quick Actions</div><button class="side-cta" onclick="openCreateTicketModal()"><i class="fas fa-plus-circle"></i> Create Ticket</button></div>`;
+        sHTML += `<div class="sidebar-section"><div class="sidebar-section-title">Admin Panel</div>${sideLink('admin-dashboard','fa-chart-line','Statistics')}${sideLink('customer-management','fa-users-cog','User Manager')}${sideLink('applications-queue','fa-clipboard-list','Applications')}${sideLink('admin-reporting','fa-chart-bar','Reports')}</div>`;
+        sHTML += `<div class="side-divider"></div><div class="sidebar-section"><div class="sidebar-section-title">General</div>${sideLink('home','fa-home','Home')}${sideLink('profile-settings','fa-user-circle','Account')}${sideLink('docs','fa-book','Docs')}</div>`;
+    } else if (user && user.role === 'Team Agent') {
+        const active = mockData.tickets.filter(t => t.assigned_to === user.name && t.status !== 'Resolved' && t.status !== 'Closed').length;
+        sHTML += `<div class="sidebar-section"><div class="sidebar-section-title">Agent Tools</div>${sideLink('agent-dashboard','fa-headset','Workspace', active > 0 ? `<span class="side-badge">${active}</span>` : '')}${sideLink('applications-queue','fa-clipboard-list','Review Queue')}</div>`;
+        sHTML += `<div class="side-divider"></div><div class="sidebar-section"><div class="sidebar-section-title">General</div>${sideLink('home','fa-home','Home')}${sideLink('profile-settings','fa-user-circle','Account')}${sideLink('docs','fa-book','Docs')}</div>`;
+    } else if (user) {
+        sHTML += `<div class="sidebar-section"><div class="sidebar-section-title">My Portal</div>${sideLink('customer-status','fa-tasks','My Status')}${sideLink('apply','fa-paper-plane','New Application')}</div>`;
+        sHTML += `<div class="side-divider"></div><div class="sidebar-section"><div class="sidebar-section-title">General</div>${sideLink('home','fa-home','Home')}${sideLink('profile-settings','fa-user-circle','Account')}${sideLink('docs','fa-book','Docs')}</div>`;
+    } else {
+        sHTML += `<div class="sidebar-section"><div class="sidebar-section-title">Navigation</div>${sideLink('home','fa-home','Home')}${sideLink('login','fa-sign-in-alt','Login')}${sideLink('apply','fa-paper-plane','Apply for Support')}${sideLink('docs','fa-book','Documentation')}</div>`;
+    }
+    if (user) {
+        const ini = user.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+        sHTML += `<div class="sidebar-bottom"><div class="sidebar-bottom-user" onclick="router('profile-settings')"><div class="nav-user-avatar">${ini}</div><div><div style="font-size:0.84rem;font-weight:600;">${user.name}</div><div style="font-size:0.68rem;color:var(--primary);font-weight:700;text-transform:uppercase;">${user.role}</div></div><i class="fas fa-chevron-right" style="margin-left:auto;color:var(--text-dim);font-size:0.7rem;"></i></div></div>`;
+    }
+    sidebar.innerHTML = sHTML;
+}
+
+function checkAdminBanner() {
+    const hasAdmin = mockData.users.some(u => u.role === 'Admin');
+    // Only show the admin-setup banner if NO admin exists AND the visitor is not logged in
+    document.getElementById('adminBanner').classList.toggle('visible', !hasAdmin && !state.currentUser);
+    buildNav();
+}
+
+function clearNotifications() { state.notifications = []; buildNav(); }
+
+// ── Router ────────────────────────────────────────────────────────────────────
+function router(view) {
+    state.currentView = view;
+    const adminViews = ['admin-dashboard','customer-management','admin-reporting'];
+    const agentViews = ['agent-dashboard','applications-queue'];
+    const dashboardViews = [...adminViews, ...agentViews, 'customer-status','profile-settings'];
+    if (adminViews.includes(view) && (!state.currentUser || state.currentUser.role !== 'Admin')) { showToast('Access denied: Admin only'); router(state.currentUser ? 'home' : 'login'); return; }
+    if (agentViews.includes(view) && (!state.currentUser || (state.currentUser.role !== 'Team Agent' && state.currentUser.role !== 'Admin'))) { showToast('Access denied: Agent required'); router(state.currentUser ? 'home' : 'login'); return; }
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+    document.getElementById(view)?.classList.add('active');
+    if (dashboardViews.includes(view) && state.currentUser) { if (!state.sidebarOpen) toggleSidebar(); } else { if (state.sidebarOpen) closeSidebar(); }
+    saveSession(); buildNav();
+    if (view === 'admin-dashboard') syncDashboard();
+    if (view === 'customer-management') loadUsers();
+    if (view === 'applications-queue') renderAppsTable();
+    if (view === 'customer-status') renderCustomerStatus();
+    if (view === 'agent-dashboard') renderAgentDashboard();
+    if (view === 'profile-settings') loadProfileData();
+    if (view === 'register') refreshRegisterPage();
+    if (view === 'admin-reporting') renderReports();
+    if (view === 'home') renderHomeStats();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function redirectByRole(user) {
+    if (!user) return router('login');
+    if (user.role === 'Admin') router('admin-dashboard');
+    else if (user.role === 'Team Agent') router('agent-dashboard');
+    else router('customer-status');
+}
+
+// ── Session ───────────────────────────────────────────────────────────────────
+const SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
+function saveSession() {
+    if (state.currentUser) localStorage.setItem('inkomane_session', JSON.stringify({ id: state.currentUser.id, lastView: state.currentView, expiresAt: Date.now() + SESSION_TTL_MS }));
+    else localStorage.removeItem('inkomane_session');
+}
+function restoreSession() {
+    try {
+        const raw = localStorage.getItem('inkomane_session');
+        if (raw) {
+            const saved = JSON.parse(raw);
+            if (saved.expiresAt && Date.now() > saved.expiresAt) {
+                localStorage.removeItem('inkomane_session');
+                console.log('[INKOMANE] Session expired — cleared.');
+                return;
+            }
+            const live = mockData.users.find(u => u.id === saved.id);
+            if (live) { state.currentUser = live; if (saved.lastView) state.pendingView = saved.lastView; }
+        }
+    } catch(e) {}
+}
+
+// ── Auth — Laravel + local fallback ──────────────────────────────────────────
+async function unifiedLogin() {
+    const email = (document.getElementById('uniEmail').value || '').trim().toLowerCase();
+    const password = document.getElementById('uniPass').value;
+    if (!email || !password) return showToast('Enter both email and password');
+    localStorage.setItem('inkomane_last_user', email);
+    document.getElementById('loginLoader').classList.add('active');
+
+    if (usingLaravelBackend) {
+        try {
+            const res = await API.post('/login', { email, password });
+            document.getElementById('loginLoader').classList.remove('active');
+            if (res.error) return showToast(res.error);
+            state.currentUser = res.user;
+            // Sync to local cache
+            const idx = mockData.users.findIndex(u => u.id === res.user.id);
+            if (idx > -1) mockData.users[idx] = { ...mockData.users[idx], ...res.user };
+            else mockData.users.push(res.user);
+            saveDB(); saveSession();
+            state.notifications.unshift({ message: `Welcome back, ${res.user.name}!`, time: 'Just now', read: false });
+            pushRTNotif(`Logged in`, res.user.name, 'success', 'fa-sign-in-alt');
+            checkAdminBanner(); redirectByRole(res.user); return;
+        } catch(e) { console.warn('Laravel login failed, using local auth'); }
+    }
+
+    // Local fallback
+    setTimeout(async () => {
+        document.getElementById('loginLoader').classList.remove('active');
+        const candidate = mockData.users.find(u => (u.email||'').toLowerCase() === email);
+        const passwordOk = candidate && (
+            // Support both hashed (64-char hex) and legacy plain-text passwords
+            (candidate.password.length === 64 ? await verifyPassword(password, candidate.password) : candidate.password === password)
+        );
+        const user = passwordOk ? candidate : null;
+        if (user) {
+            state.currentUser = user; saveSession();
+            state.notifications.unshift({ message: `Welcome back, ${user.name}!`, time: 'Just now', read: false });
+            logActivity(`${user.name} (${user.role}) logged in`, 'login'); saveDB();
+            pushRTNotif(`Logged in as ${user.role}`, user.name, 'success', 'fa-sign-in-alt');
+            document.getElementById('uniEmail').value = ''; document.getElementById('uniPass').value = '';
+            checkAdminBanner(); redirectByRole(user);
+        } else { showToast('Invalid email or password'); }
+    }, 400);
+}
+
+async function unifiedRegister() {
+    const role = document.getElementById('regRole').value;
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPass').value;
+    if (!name || !email || !password) return showToast('Fill all required fields');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Enter a valid email address');
+    if (password.length < 6) return showToast('Password must be at least 6 characters');
+    if (role === 'Admin' && mockData.users.some(u => u.role === 'Admin')) return showToast('Admin already exists!');
+    if (mockData.users.some(u => u.email === email)) return showToast('Email already registered');
+    document.getElementById('registerLoader').classList.add('active');
+
+    if (usingLaravelBackend) {
+        try {
+            const res = await API.post('/register', { name, email, password, password_confirmation: password, role, department: 'Sales' });
+            document.getElementById('registerLoader').classList.remove('active');
+            if (res.error || res.errors) return showToast(res.message || 'Registration failed');
+            mockData.users.push(res.user || { id: Date.now(), name, email, role, department: 'Sales', clickthrough: 0, phone: '', registeredAt: new Date().toISOString() });
+            saveDB(); showToast('Account created! Please log in.');
+            checkAdminBanner(); refreshRegisterPage(); router('login'); return;
+        } catch(e) { console.warn('Laravel register failed, using local'); }
+    }
+
+    setTimeout(async () => {
+        document.getElementById('registerLoader').classList.remove('active');
+        const hashed = await hashPassword(password);
+        mockData.users.push({ id: Date.now(), name, email, password: hashed, role, department: 'Sales', clickthrough: 0, phone: '', registeredAt: new Date().toISOString() });
+        logActivity(`New ${role} registered: ${name}`, 'register'); saveDB();
+        showToast('Account created! Please log in.');
+        checkAdminBanner(); refreshRegisterPage(); router('login');
+    }, 400);
+}
+
+function logout() {
+    if (usingLaravelBackend) { API.post('/logout', {}).catch(() => {}); }
+    state.currentUser = null; saveSession(); state.notifications = [];
+    closeSidebar(); checkAdminBanner(); router('home'); showToast('Logged out');
+    const el = document.getElementById('uniEmail'); const pe = document.getElementById('uniPass');
+    if (el) el.value = ''; if (pe) pe.value = '';
+}
+
+function requestReset() {
+    const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+    if (!email) return showToast('Enter your email');
+    if (usingLaravelBackend) {
+        API.post('/password/email', { email }).then(() => { showToast('Reset link sent!'); router('reset-password'); }).catch(() => showToast('Could not send reset email'));
+    } else {
+        const user = mockData.users.find(u => (u.email||'').toLowerCase() === email);
+        if (!user) { showToast('No account found with that email.'); return; }
+        // Generate a 6-char alphanumeric token and store it
+        const token = Math.random().toString(36).substring(2,8).toUpperCase();
+        user._resetToken = token;
+        user._resetExpiry = Date.now() + 15 * 60 * 1000; // 15 min
+        saveDB();
+        // Show the token on-screen since there is no email service in local mode
+        showToast(`Reset token (local mode): ${token}`);
+        setTimeout(() => alert(`⚠️ Local Mode — No email service.\n\nYour password reset token is:\n\n${token}\n\nCopy it and use it on the next screen.\n(Valid for 15 minutes)`), 400);
+        router('reset-password');
+    }
+}
+
+async function resetPassword() {
+    const token = document.getElementById('resetToken').value.trim().toUpperCase();
+    const pass = document.getElementById('resetPass').value;
+    if (!token || !pass) return showToast('Fill all fields');
+    if (pass.length < 6) return showToast('Password must be at least 6 characters');
+    if (usingLaravelBackend) {
+        API.post('/password/reset', { token, password: pass, password_confirmation: pass }).then(r => { showToast(r.message || 'Password reset!'); router('login'); }).catch(() => showToast('Reset failed'));
+    } else {
+        const user = mockData.users.find(u => u._resetToken === token);
+        if (!user) { showToast('Invalid or expired reset token.'); return; }
+        if (Date.now() > (user._resetExpiry || 0)) { showToast('Reset token has expired. Please request a new one.'); return; }
+        user.password = await hashPassword(pass);
+        delete user._resetToken; delete user._resetExpiry;
+        saveDB(); showToast('Password updated! Please log in.'); router('login');
+    }
+}
+
+// ── Submit application — Laravel + local fallback ─────────────────────────────
+async function submitApplication() {
+    const name = document.getElementById('applyName').value.trim();
+    const email = document.getElementById('applyEmail').value.trim();
+    const pass = document.getElementById('applyPass').value;
+    const subject = document.getElementById('applySubject').value.trim();
+    const desc = document.getElementById('applyDesc').value.trim();
+    const priority = document.getElementById('applyPriority')?.value || 'Medium';
+    const dept = document.getElementById('applyDept').value;
+    const fileEl = document.getElementById('applyFile');
+    if (!name || !email || !subject || !pass || !desc) return showToast('Fill all required fields (*)');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Enter a valid email address');
+    document.getElementById('applyLoader').classList.add('active');
+
+    if (usingLaravelBackend) {
+        try {
+            const formData = new FormData();
+            formData.append('name', name); formData.append('email', email);
+            formData.append('password', pass); formData.append('subject', subject);
+            formData.append('description', desc); formData.append('category', state.regSelectedCat);
+            formData.append('priority', priority); formData.append('department', dept);
+            if (fileEl && fileEl.files[0]) formData.append('attachment', fileEl.files[0]);
+            const res = await API.postForm('/applications', formData);
+            document.getElementById('applyLoader').classList.remove('active');
+            if (res.error) return showToast(res.error);
+            // Sync to local cache
+            if (!mockData.users.find(u => u.email === email)) mockData.users.push({ id: Date.now(), name, email, password: pass, role: 'Customer', department: dept, clickthrough: 0, phone: '', registeredAt: new Date().toISOString() });
+            const appRecord = res.application || { id: Date.now(), name, email, subject, description: desc, priority, status: 'confirmed', category: state.regSelectedCat, submitted_at: new Date().toISOString() };
+            appRecord.status = appRecord.status === 'pending' ? 'confirmed' : appRecord.status;
+            mockData.applications.push(appRecord);
+            if (res.ticket) {
+                mockData.tickets.unshift(res.ticket);
+            } else if (!mockData.tickets.some(t => t.applicant_email?.toLowerCase() === email.toLowerCase() && t.subject === subject)) {
+                const agent = autoAssignAgent('round-robin');
+                if (agent) mockData.tickets.unshift(createWorkTicketFromApplication(appRecord, agent));
+            }
+            saveDB(); document.getElementById('waitName').innerText = name;
+            pushRTNotif('Application submitted', `${name}: "${subject}"`, 'info', 'fa-ticket-alt');
+            router('wait-page'); showToast('Application submitted!'); return;
+        } catch(e) { console.warn('Laravel application submit failed, using local'); }
+    }
+
+    setTimeout(async () => {
+        document.getElementById('applyLoader').classList.remove('active');
+        const fileName = fileEl && fileEl.files[0] ? fileEl.files[0].name : null;
+        const hashed = await hashPassword(pass);
+        if (!mockData.users.find(u => u.email === email)) mockData.users.push({ id: Date.now(), name, email, password: hashed, role: 'Customer', department: dept, clickthrough: 0, phone: '', registeredAt: new Date().toISOString() });
+        const appRecord = { id: Date.now(), name, email, subject, description: desc, priority, status: 'confirmed', category: state.regSelectedCat, attachment: fileName, submitted_at: new Date().toISOString() };
+        mockData.applications.push(appRecord);
+        const agent = autoAssignAgent('round-robin');
+        if (agent) mockData.tickets.unshift(createWorkTicketFromApplication(appRecord, agent));
+        document.getElementById('waitName').innerText = name;
+        saveDB(); pushRTNotif('Application submitted', `${name}: "${subject}"`, 'info', 'fa-ticket-alt');
+        router('wait-page'); showToast('Application submitted!');
+    }, 400);
+}
+
+// ── Cube & category ───────────────────────────────────────────────────────────
+function rotateRegCube(d) { state.regCubeRot += d * 90; const c = document.getElementById('applyCube'); if (c) c.style.transform = `rotateY(${state.regCubeRot}deg)`; }
+function setRegCat(c) { state.regSelectedCat = c; const el = document.getElementById('applySelectedCat'); if (el) el.innerText = c; }
+
+function activeTicketStatus(t) {
+    return !['Resolved', 'Closed'].includes(t.status);
+}
+
+function createWorkTicketFromApplication(app, agent) {
+    return {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        subject: app.subject || 'Support Request',
+        description: app.description || '',
+        category: app.category || state.regSelectedCat || 'General',
+        priority: app.priority || 'Medium',
+        status: agent ? 'Work' : 'Open',
+        applicant_email: app.email,
+        assigned_to: agent || null,
+        attachment: app.attachment || app.file_path || null,
+        created_at: new Date().toISOString(),
+        messages: [],
+        updateHistory: []
+    };
+}
+
+// ── Customer status ───────────────────────────────────────────────────────────
+function renderCustomerStatus() {
+    if (!state.currentUser) return;
+    const email = state.currentUser.email.toLowerCase();
+    const name = state.currentUser.name;
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good Morning' : hour < 18 ? 'Good Afternoon' : 'Good Evening';
+    document.getElementById('customerStatusBanner').innerHTML = `<div class="glass-panel" style="background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(139,92,246,0.08));border-left:4px solid var(--primary);margin-bottom:20px;"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;"><div><h1 style="font-size:1.5rem;margin-bottom:5px;"><i class="fas fa-star" style="color:var(--primary);margin-right:8px;"></i>${greeting}, ${name}!</h1><p style="color:var(--text-dim);font-size:0.86rem;">Welcome back to your support portal.</p></div><span class="session-badge"><i class="fas fa-circle"></i> Session Active</span></div></div>`;
+    const tickets = mockData.tickets.filter(t => t.applicant_email?.toLowerCase() === email);
+    const apps = mockData.applications.filter(a => a.email?.toLowerCase() === email);
+    const pending = tickets.filter(t => t.status === 'Open' || t.status === 'Work' || t.status === 'In Progress').length;
+    const resolved = tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length;
+    const countersEl = document.getElementById('customerServiceCounters');
+    if (countersEl) countersEl.innerHTML = `<div class="service-counter"><div class="sc-num">${tickets.length}</div><div class="sc-label">Total Tickets</div></div><div class="service-counter"><div class="sc-num" style="background:linear-gradient(135deg,var(--warning),#d97706);background-clip:text;-webkit-text-fill-color:transparent;">${pending}</div><div class="sc-label">Pending</div></div><div class="service-counter"><div class="sc-num" style="background:linear-gradient(135deg,var(--success),#059669);background-clip:text;-webkit-text-fill-color:transparent;">${resolved}</div><div class="sc-label">Resolved</div></div>`;
+    document.getElementById('customerActiveTickets').innerHTML = tickets.length ? tickets.map(t => {
+        const done = t.status === 'Resolved' || t.status === 'Closed';
+        const color = t.status === 'Open' ? 'var(--success)' : t.status === 'Work' ? 'var(--accent)' : done ? '#64748b' : 'var(--warning)';
+        let ty = '';
+        if (done && t.status !== 'Closed') { ty = `<div class="thank-you-card"><h4><i class="fas fa-check-circle"></i> Resolved!</h4><p>Send a thank you to ${t.assigned_to||'the agent'}.</p><textarea id="tyInput_${t.id}" rows="2" placeholder="Type your thank you..." style="width:100%;padding:10px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(16,185,129,0.2);color:#fff;resize:vertical;margin-bottom:10px;font-size:0.86rem;font-family:inherit;"></textarea><button class="btn-success" onclick="sendThankYou(${t.id})">Send Thank You</button></div>`; }
+        else if (t.status === 'Closed') { ty = `<div style="background:rgba(100,116,139,0.06);border:1px solid rgba(100,116,139,0.15);border-radius:12px;padding:14px;margin-bottom:14px;text-align:center;"><i class="fas fa-lock" style="color:#64748b;margin-right:6px;"></i><span style="color:#64748b;font-size:0.85rem;">Ticket closed. Thank you for your feedback.</span></div>`; }
+        return `<div class="applied-card" style="display:block;padding:22px;border-left:4px solid ${color};margin-bottom:16px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px;"><div><span style="font-size:0.72rem;color:var(--primary);text-transform:uppercase;letter-spacing:1px;font-weight:700;">Ticket #${esc(t.id)}</span><h3 style="font-size:1.1rem;margin-top:4px;">${esc(t.subject)}</h3></div><span style="font-size:0.8rem;font-weight:600;color:${color};">${esc(t.status)}</span></div><p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:12px;"><i class="fas fa-layer-group" style="margin-right:5px;"></i>${esc(t.category)} &nbsp; <i class="fas fa-signal" style="margin-right:5px;"></i>${esc(t.priority)}</p>${t.agent_response?`<div style="background:rgba(99,102,241,0.06);padding:14px;border-radius:10px;border-left:3px solid var(--primary);margin-bottom:12px;"><p style="font-size:0.75rem;color:var(--primary);font-weight:600;margin-bottom:6px;"><i class="fas fa-comment-dots" style="margin-right:5px;"></i>Agent Response</p><p style="font-size:0.88rem;line-height:1.6;">${esc(t.agent_response)}</p></div>`:''} ${ty} ${t.assigned_to?`<div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--glass-border);"><div style="width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.7rem;">${esc(t.assigned_to.charAt(0))}</div><p style="color:var(--text-dim);font-size:0.84rem;"><strong>Agent:</strong> ${esc(t.assigned_to)}</p></div>`:''}</div>`;
+    }).join('') : '<div class="empty-state"><i class="fas fa-ticket-alt"></i><p>No active tickets yet.</p></div>';
+    document.getElementById('customerApplicationCards').innerHTML = apps.length ? apps.map(a => {
+        const p = a.status === 'pending';
+        return `<div class="applied-card"><div><h4 style="font-size:0.95rem;margin-bottom:4px;">${a.subject}</h4><p style="font-size:0.8rem;color:var(--text-dim);"><i class="fas fa-calendar-alt" style="margin-right:4px;"></i>${new Date(a.submitted_at).toLocaleDateString()} &bull; <span style="color:var(--accent);">${a.category}</span></p>${a.attachment?`<span class="attach-tag"><i class="fas fa-paperclip"></i>${a.attachment}</span>`:''}</div><div class="applied-pill ${p?'pill-pending':'pill-confirmed'}">${a.status.toUpperCase()}</div></div>`;
+    }).join('') : '<div class="empty-state"><i class="fas fa-clipboard-list"></i><p>No applications.</p></div>';
+}
+
+function sendThankYou(id) {
+    const t = mockData.tickets.find(x => x.id == id);
+    if (!t || !confirm('Send thank you to '+(t.assigned_to||'agent')+'?')) return;
+    const msg = document.getElementById('tyInput_'+id)?.value?.trim() || 'Thank you for solving my issue!';
+    t.agent_response = (t.agent_response||'')+'\n\n[Customer]: '+msg;
+    t.status = 'Closed'; t.updated_at = new Date().toISOString();
+    if (!mockData.thanking) mockData.thanking = [];
+    mockData.thanking.unshift({ id: Date.now(), ticketId: t.id, from: state.currentUser?.email, to: t.assigned_to, message: msg, sent_at: new Date().toISOString() });
+    saveDB(); showToast('Thank you sent! Ticket closed.'); renderCustomerStatus();
+    if (usingLaravelBackend) { API.put(`/api/tickets/${t.id}`, { status: 'Closed', agent_response: t.agent_response }).catch(() => {}); }
+}
+
+// ── Admin dashboard ───────────────────────────────────────────────────────────
+function animateCounter(id, val) { const el = document.getElementById(id); if (!el) return; const prev = parseInt(el.innerText)||0; if (prev !== val) { el.innerText = val; el.classList.remove('updated'); void el.offsetWidth; el.classList.add('updated'); } }
+function syncDashboard() {
+    animateCounter('statTickets', mockData.tickets.length);
+    animateCounter('statActive', mockData.tickets.filter(t => t.status === 'Open' || t.status === 'Work' || t.status === 'In Progress').length);
+    animateCounter('statResolved', mockData.tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length);
+    animateCounter('statUsers', mockData.users.length);
+    renderCategoryStats(); renderAdminTicketTable(); renderAssignmentLog(); renderResolutionHistory();
+    // Also update priority widget on dashboard
+    const bpEl = document.getElementById('reportByPriority');
+    if (bpEl) {
+        const priorities = ['High','Medium','Low'];
+        const colors = {'High':'var(--danger)','Medium':'var(--warning)','Low':'var(--success)'};
+        const max = Math.max(...priorities.map(p => mockData.tickets.filter(t => t.priority === p).length), 1);
+        bpEl.innerHTML = priorities.map(p => { const c = mockData.tickets.filter(t => t.priority === p).length; const w = Math.round((c/max)*100); return `<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:0.8rem;"><span style="color:var(--text-dim);">${p}</span><span style="color:${colors[p]};font-weight:700;">${c}</span></div><div style="height:6px;background:var(--surface);border-radius:6px;overflow:hidden;"><div style="height:100%;width:${w}%;background:${colors[p]};border-radius:6px;transition:width .6s;"></div></div></div>`; }).join('');
+    }
+}
+
+function renderCategoryStats() {
+    const el = document.getElementById('categoryStats'); if (!el) return;
+    const cats = ['Hardware','Software','Cloud Services','Network','Cybersecurity','AI & Automation','Data Analytics','Billing'];
+    const max = Math.max(...cats.map(c => mockData.tickets.filter(t => t.category === c).length), 1);
+    el.innerHTML = cats.filter(c => mockData.tickets.some(t => t.category === c)).map(c => {
+        const n = mockData.tickets.filter(t => t.category === c).length;
+        const w = Math.round((n/max)*100);
+        return `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:4px;"><span style="color:var(--text-dim);">${c}</span><span style="color:var(--accent);font-weight:600;">${n}</span></div><div style="height:5px;background:var(--surface);border-radius:5px;overflow:hidden;"><div style="height:100%;width:${w}%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:5px;"></div></div></div>`;
+    }).join('') || '<p style="color:var(--text-dim);font-size:0.84rem;">No data yet.</p>';
+}
+
+function renderAssignmentLog() {
+    const el = document.getElementById('assignmentLog'); if (!el) return;
+    const agents = mockData.users.filter(u => u.role === 'Team Agent');
+    if (!agents.length) { el.innerHTML = '<p style="color:var(--text-dim);font-size:0.84rem;">No agents.</p>'; return; }
+    el.innerHTML = agents.map(a => {
+        const total = mockData.tickets.filter(t => t.assigned_to === a.name).length;
+        const res = mockData.tickets.filter(t => t.assigned_to === a.name && (t.status === 'Resolved' || t.status === 'Closed')).length;
+        const ini = a.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--glass-border);"><div style="width:32px;height:32px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.72rem;flex-shrink:0;">${ini}</div><div style="flex:1;"><p style="font-size:0.84rem;font-weight:500;margin-bottom:2px;">${a.name}</p><p style="font-size:0.72rem;color:var(--text-dim);">${total} tickets &bull; ${res} resolved</p></div></div>`;
+    }).join('');
+}
+
+const TICKETS_PER_PAGE = 15;
+let adminTicketPage = 1;
+
+function renderAdminTicketTable() {
+    const tbody = document.getElementById('adminTicketBody'); if (!tbody) return;
+    const q = (document.getElementById('adminSearchInput')?.value||'').toLowerCase();
+    const sf = document.getElementById('adminStatusFilter')?.value||'';
+    const pf = document.getElementById('adminPrioFilter')?.value||'';
+    let tickets = mockData.tickets.filter(t => (!q || t.subject.toLowerCase().includes(q) || (t.applicant_email||'').toLowerCase().includes(q)) && (!sf || t.status === sf) && (!pf || t.priority === pf));
+    if (!tickets.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><p>No tickets.</p></div></td></tr>'; renderTicketPagination(0,0); return; }
+    const totalPages = Math.ceil(tickets.length / TICKETS_PER_PAGE);
+    if (adminTicketPage > totalPages) adminTicketPage = totalPages;
+    const paginated = tickets.slice((adminTicketPage-1)*TICKETS_PER_PAGE, adminTicketPage*TICKETS_PER_PAGE);
+    const statusColor = s => ({ Open:'var(--success)', Work:'var(--accent)', Assigned:'var(--accent)', 'In Progress':'var(--warning)', Resolved:'#94a3b8', Closed:'#64748b' }[s]||'var(--text-dim)');
+    tbody.innerHTML = paginated.map(t => `<tr><td style="color:var(--primary);font-weight:700;font-size:0.82rem;">#${esc(t.id)}</td><td style="color:var(--text-dim);font-size:0.82rem;">${esc(t.applicant_email||'—')}</td><td style="font-weight:500;">${esc(t.subject)}</td><td><span class="category-tag">${esc(t.category||'—')}</span></td><td><span style="color:${statusColor(t.status)};font-weight:600;font-size:0.82rem;">${esc(t.status)}</span></td><td><span style="color:${t.priority==='High'?'var(--danger)':t.priority==='Medium'?'var(--warning)':'var(--success)'};font-weight:600;font-size:0.82rem;">${esc(t.priority)}</span></td><td style="font-size:0.82rem;color:var(--text-dim);">${esc(t.assigned_to||'—')}</td><td><div class="action-btns"><button class="btn-configure" onclick="openTicketConfig(${t.id})"><i class="fas fa-edit"></i></button><button class="btn-icon" style="color:var(--danger);padding:5px 9px;" onclick="deleteTicket(${t.id})"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
+    renderTicketPagination(adminTicketPage, totalPages);
+}
+
+function renderTicketPagination(page, total) {
+    let el = document.getElementById('adminTicketPagination');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'adminTicketPagination';
+        el.style.cssText = 'display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 0 4px;';
+        document.getElementById('adminTicketBody')?.closest('table')?.after(el);
+    }
+    if (total <= 1) { el.innerHTML = ''; return; }
+    el.innerHTML = `<span style="font-size:0.78rem;color:var(--text-dim);">Page ${page} of ${total}</span>
+    <button class="btn-icon" style="padding:5px 10px;" onclick="adminTicketPage=Math.max(1,adminTicketPage-1);renderAdminTicketTable();" ${page===1?'disabled':''}>&#8592;</button>
+    <button class="btn-icon" style="padding:5px 10px;" onclick="adminTicketPage=Math.min(${total},adminTicketPage+1);renderAdminTicketTable();" ${page===total?'disabled':''}>&#8594;</button>`;
+}
+
+function filterAdminTable() { adminTicketPage = 1; renderAdminTicketTable(); }
+
+function renderResolutionHistory() {
+    const resolved = mockData.tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed');
+    const badge = document.getElementById('resolvedCountBadge'); if (badge) badge.textContent = resolved.length + ' Resolved';
+    const tbody = document.getElementById('resolutionHistoryBody'); if (!tbody) return;
+    if (!resolved.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-check-circle"></i><p>No resolved tickets yet.</p></div></td></tr>'; return; }
+    tbody.innerHTML = resolved.slice(0,20).map(t => {
+        const at = t.resolved_at ? new Date(t.resolved_at).toLocaleString() : (t.updated_at ? new Date(t.updated_at).toLocaleString() : '—');
+        const dur = t.resolution_duration != null ? (t.resolution_duration < 60 ? t.resolution_duration+'m' : Math.round(t.resolution_duration/60)+'h') : '—';
+        const resp = t.agent_response ? (t.agent_response.length > 40 ? t.agent_response.substring(0,40)+'…' : t.agent_response) : '—';
+        return `<tr><td style="color:var(--primary);font-weight:700;">#${t.id}</td><td style="font-size:0.8rem;color:var(--text-dim);">${t.applicant_email||'—'}</td><td style="font-size:0.84rem;font-weight:500;">${t.subject}</td><td style="color:var(--accent);font-size:0.8rem;">${t.assigned_to||'—'}</td><td style="font-size:0.76rem;color:var(--text-dim);">${at}</td><td style="font-size:0.76rem;color:var(--warning);">${dur}</td><td style="font-size:0.76rem;color:var(--text-dim);">${resp}</td></tr>`;
+    }).join('');
+}
+
+// ── Applications queue ────────────────────────────────────────────────────────
+function renderAppsTable() {
+    const tbody = document.getElementById('appsTableBody'); if (!tbody) return;
+    if (!mockData.applications.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><p>No applications.</p></div></td></tr>'; return; }
+    tbody.innerHTML = mockData.applications.map(a => {
+        const cls = a.status === 'confirmed' ? 'app-confirmed' : 'app-pending';
+        const actions = a.status === 'pending' ? `<div class="action-btns"><button class="btn-success" style="padding:5px 11px;font-size:0.78rem;" onclick="confirmApp(${a.id})"><i class="fas fa-check"></i></button><button class="btn-danger" style="padding:5px 11px;font-size:0.78rem;" onclick="rejectApp(${a.id})"><i class="fas fa-times"></i></button></div>` : `<span class="app-badge ${cls}">${a.status}</span>`;
+        const prioColor = { High:'var(--danger)', Medium:'var(--warning)', Low:'var(--success)' }[a.priority]||'var(--text-dim)';
+        return `<tr><td><b style="font-size:0.88rem;">${esc(a.name)}</b></td><td style="color:var(--text-dim);font-size:0.82rem;">${esc(a.email)}</td><td><span class="category-tag">${esc(a.category||'')}</span></td><td style="font-size:0.88rem;">${esc(a.subject)}</td><td style="color:${prioColor};font-weight:600;font-size:0.82rem;">${esc(a.priority||'—')}</td><td style="color:var(--text-dim);font-size:0.78rem;">${a.submitted_at?new Date(a.submitted_at).toLocaleDateString():'—'}</td><td><span class="app-badge ${cls}">${esc(a.status)}</span></td><td>${actions}</td></tr>`;
+    }).join('');
+    syncDashboard();
+}
+
+function autoAssignAgent(strategy) {
+    const agents = mockData.users.filter(u => u.role === 'Team Agent').sort((a,b) => (a.id||0) - (b.id||0) || String(a.name).localeCompare(String(b.name)));
+    if (!agents.length) return null;
+    if (strategy === 'least-workload') { return agents.reduce((best, a) => { const load = mockData.tickets.filter(t => t.assigned_to === a.name && activeTicketStatus(t)).length; const bestLoad = mockData.tickets.filter(t => t.assigned_to === best.name && activeTicketStatus(t)).length; return load < bestLoad ? a : best; }, agents[0]).name; }
+    if (strategy === 'round-robin') {
+        const nextIndex = (parseInt(localStorage.getItem(RR_AGENT_KEY) || '-1', 10) + 1) % agents.length;
+        localStorage.setItem(RR_AGENT_KEY, String(nextIndex));
+        return agents[nextIndex].name;
+    }
+    return agents[Math.floor(Math.random()*agents.length)].name;
+}
+
+function confirmApp(id) {
+    const i = mockData.applications.findIndex(a => a.id === id); if (i === -1) return;
+    const app = mockData.applications[i]; app.status = 'confirmed';
+    const agent = autoAssignAgent('round-robin');
+    if (agent) {
+        const ticket = createWorkTicketFromApplication(app, agent);
+        mockData.tickets.unshift(ticket);
+        logActivity(`Ticket created for ${app.email} → ${agent}`, 'ticket-create');
+        pushRTNotif(`Application confirmed`, `${app.name} → ${agent}`, 'success', 'fa-check-circle');
+        if (usingLaravelBackend) { API.post('/api/tickets', ticket).catch(() => {}); }
+    }
+    saveDB(); buildNav(); renderAppsTable(); showToast('Confirmed & ticket assigned!');
+}
+
+function rejectApp(id) { if (!confirm('Reject this application?')) return; mockData.applications = mockData.applications.filter(a => a.id !== id); saveDB(); renderAppsTable(); showToast('Application rejected'); }
+function confirmAll() {
+    if (!mockData.applications.some(a => a.status === 'pending')) return showToast('No pending applications');
+    if (!confirm('Confirm ALL pending applications?')) return;
+    let count = 0; mockData.applications.forEach(a => { if (a.status === 'pending') { a.status = 'confirmed'; const agent = autoAssignAgent('round-robin'); if (agent) mockData.tickets.unshift(createWorkTicketFromApplication(a, agent)); count++; } });
+    saveDB(); renderAppsTable(); pushRTNotif(`${count} application(s) confirmed`, 'Queue updated', 'success', 'fa-check-double'); showToast('All confirmed!');
+}
+
+// ── Ticket config modal ───────────────────────────────────────────────────────
+function openCreateTicketModal() {
+    const agSel = document.getElementById('ticketAgent');
+    if (agSel) { const agents = mockData.users.filter(u => u.role === 'Team Agent'); agSel.innerHTML = agents.length ? agents.map(a => `<option value="${a.name}">${a.name}</option>`).join('') : '<option value="">No agents</option>'; }
+    document.getElementById('createTicketModal').style.display = 'flex';
+}
+function closeCreateTicketModal() { document.getElementById('createTicketModal').style.display = 'none'; }
+function submitNewTicket() {
+    const email = document.getElementById('ticketCustomerEmail').value.trim();
+    const subject = document.getElementById('ticketSubject').value.trim();
+    const category = document.getElementById('ticketCategory').value;
+    const agent = document.getElementById('ticketAgent').value;
+    const priority = document.getElementById('ticketPriority').value;
+    if (!email || !subject) return showToast('Email and subject required');
+    const ticket = { id: Date.now(), subject, description: '', category, priority, status: agent?'Work':'Open', applicant_email: email, assigned_to: agent||null, created_at: new Date().toISOString(), messages: [], updateHistory: [] };
+    mockData.tickets.unshift(ticket);
+    logActivity(`Ticket created: ${subject} → ${agent||'Unassigned'}`, 'ticket-create');
+    saveDB(); closeCreateTicketModal(); syncDashboard();
+    pushRTNotif('Ticket created', subject, 'success', 'fa-ticket-alt');
+    if (usingLaravelBackend) { API.post('/api/tickets', ticket).catch(() => {}); }
+    showToast('Ticket created!');
+}
+
+function openTicketConfig(id) {
+    const t = mockData.tickets.find(x => x.id == id); if (!t) return;
+    state.editingTicketId = id;
+    document.getElementById('configTicketId').innerText = `Ticket #${id} — ${t.subject}`;
+    document.getElementById('configSubject').value = t.subject||'';
+    document.getElementById('configStatus').value = t.status||'Open';
+    document.getElementById('configPriority').value = t.priority||'Medium';
+    document.getElementById('configResponse').value = t.agent_response||'';
+    const agSel = document.getElementById('configAgent');
+    if (agSel) { const agents = mockData.users.filter(u => u.role === 'Team Agent'||u.role === 'Admin'); agSel.innerHTML = '<option value="">— Keep current —</option>' + agents.map(a => `<option value="${a.name}" ${t.assigned_to===a.name?'selected':''}>${a.name} (${a.role})</option>`).join(''); }
+    const threadList = document.getElementById('ticketThreadList');
+    if (threadList) { const msgs = t.messages||[]; threadList.innerHTML = msgs.length ? msgs.map(m => { const isAgent = m.sender_role === 'agent'; return `<div class="thread-msg ${isAgent?'agent':''}"><div class="thread-avatar" style="background:${isAgent?'var(--primary)':'#1e293b'}">${esc((m.sender||'?').charAt(0).toUpperCase())}</div><div><div class="thread-bubble">${esc(m.text)}</div><div class="thread-meta">${esc(m.sender)} &bull; ${new Date(m.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div></div>`; }).join('') : '<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:0.82rem;"><i class="fas fa-comments" style="display:block;font-size:1.5rem;margin-bottom:8px;opacity:0.2;"></i>No messages yet.</div>'; }
+    document.getElementById('ticketConfigModal').style.display = 'flex';
+}
+function closeTicketConfig() { document.getElementById('ticketConfigModal').style.display = 'none'; state.editingTicketId = null; }
+
+function saveTicketConfig() {
+    const t = mockData.tickets.find(x => x.id == state.editingTicketId); if (!t) return;
+    const prevStatus = t.status; const prevPriority = t.priority;
+    t.subject = document.getElementById('configSubject').value.trim();
+    t.status = document.getElementById('configStatus').value;
+    t.priority = document.getElementById('configPriority').value;
+    t.agent_response = document.getElementById('configResponse').value.trim();
+    t.updated_at = new Date().toISOString();
+    const newAgent = document.getElementById('configAgent')?.value;
+    if (newAgent && newAgent !== t.assigned_to) { t.assigned_to = newAgent; pushRTNotif(`Ticket reassigned to ${newAgent}`, t.subject, 'warning', 'fa-random'); }
+    if (!t.updateHistory) t.updateHistory = [];
+    t.updateHistory.push({ timestamp: new Date().toISOString(), actor: state.currentUser?.name||'System', changes: { status: { from: prevStatus, to: t.status }, priority: { from: prevPriority, to: t.priority } } });
+    if (prevStatus !== t.status) { state.notifications.unshift({ message: `Ticket "${t.subject}": ${prevStatus} → ${t.status}`, time: 'Just now', read: false }); if (t.status === 'Resolved' || t.status === 'Closed') { t.resolved_at = new Date().toISOString(); const dur = t.created_at ? Math.round((new Date() - new Date(t.created_at))/60000) : null; t.resolution_duration = dur; } pushRTNotif(`Ticket ${t.status}`, t.subject, t.status === 'Resolved'?'success':'info', 'fa-bell'); }
+    logActivity(`Ticket #${t.id} updated → ${t.status}`, 'ticket-update');
+    saveDB(); buildNav();
+    if (usingLaravelBackend) { API.put(`/api/tickets/${t.id}`, { status: t.status, priority: t.priority, agent_response: t.agent_response, assigned_to: t.assigned_to }).catch(() => {}); }
+    if (state.currentUser?.role === 'Team Agent') renderAgentDashboard(); else { renderAdminTicketTable(); renderResolutionHistory(); }
+    closeTicketConfig(); showToast('Ticket updated!');
+}
+
+function sendThreadMessage() {
+    const input = document.getElementById('threadMsgInput'); if (!input) return;
+    const text = input.value.trim(); if (!text || !state.editingTicketId) return;
+    const t = mockData.tickets.find(x => x.id == state.editingTicketId); if (!t) return;
+    if (!t.messages) t.messages = [];
+    const msg = { id: Date.now(), sender: state.currentUser?.name||'Agent', sender_role: state.currentUser?.role === 'Customer' ? 'customer' : 'agent', text, timestamp: new Date().toISOString() };
+    t.messages.push(msg); t.updated_at = new Date().toISOString();
+    state.notifications.unshift({ message: `New message on "${t.subject}"`, time: 'Just now', read: false });
+    pushRTNotif('New message', t.subject, 'info', 'fa-comment-dots');
+    saveDB(); input.value = ''; buildNav(); openTicketConfig(state.editingTicketId);
+}
+
+function deleteTicket(id) { if (!confirm('Delete this ticket?')) return; mockData.tickets = mockData.tickets.filter(t => t.id != id); saveDB(); if (state.currentUser?.role === 'Team Agent') renderAgentDashboard(); else syncDashboard(); showToast('Ticket deleted'); }
+
+// ── Agent dashboard ───────────────────────────────────────────────────────────
+function renderAgentDashboard() {
+    if (!state.currentUser) return;
+    document.getElementById('agentProfileName').value = state.currentUser.name||'';
+    document.getElementById('agentProfileEmail').value = state.currentUser.email||'';
+    const my = mockData.tickets.filter(t => t.assigned_to === state.currentUser.name);
+    animateCounter('agentStatTotal', my.length);
+    animateCounter('agentStatResolved', my.filter(t => t.status === 'Resolved' || t.status === 'Closed').length);
+    animateCounter('agentStatUnresolved', my.filter(t => t.status === 'Open' || t.status === 'Work' || t.status === 'In Progress').length);
+    animateCounter('agentStatHighPriority', my.filter(t => t.priority === 'High' && (t.status === 'Open' || t.status === 'Work' || t.status === 'In Progress')).length);
+    const tbody = document.getElementById('agentTicketBody');
+    const q = (document.getElementById('agentSearchInput')?.value||'').toLowerCase();
+    const filtered = my.filter(t => t.subject.toLowerCase().includes(q) || (t.applicant_email||'').toLowerCase().includes(q));
+    const statusColor = s => ({ Open:'var(--success)', Work:'var(--accent)', Assigned:'var(--accent)', 'In Progress':'var(--warning)', Resolved:'#94a3b8', Closed:'#64748b' }[s]||'var(--text-dim)');
+    tbody.innerHTML = filtered.length ? filtered.map(t => {
+        const done = t.status === 'Resolved' || t.status === 'Closed';
+        return `<tr style="${done?'opacity:0.65;':''}"><td style="color:var(--primary);font-weight:700;">#${t.id}</td><td style="font-size:0.82rem;color:var(--text-dim);">${t.applicant_email||''}</td><td>${t.subject}</td><td style="color:${statusColor(t.status)};font-weight:600;font-size:0.82rem;">${t.status}</td><td style="color:${t.priority==='High'?'var(--danger)':t.priority==='Medium'?'var(--warning)':'var(--success)'};font-weight:600;font-size:0.82rem;">${t.priority}</td><td style="font-size:0.78rem;color:var(--text-dim);">${t.created_at?new Date(t.created_at).toLocaleDateString():'—'}</td><td><div class="action-btns"><button class="btn-configure" onclick="openTicketConfig(${t.id})">${done?'View':'Update'}</button><button class="btn-icon" style="color:var(--danger);padding:5px 9px;" onclick="deleteTicket(${t.id})"><i class="fas fa-trash"></i></button></div></td></tr>`;
+    }).join('') : '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-clipboard-check"></i><p>No tickets assigned.</p></div></td></tr>';
+    renderThankYouList();
+}
+function filterAgentTable() { renderAgentDashboard(); }
+function saveAgentProfile() { if (state.currentUser) { state.currentUser.name = document.getElementById('agentProfileName').value; state.currentUser.email = document.getElementById('agentProfileEmail').value; } showToast('Profile updated!'); buildNav(); }
+
+function renderThankYouList() {
+    if (!state.currentUser) return;
+    const list = document.getElementById('thankYouList'); const badge = document.getElementById('thankyouCount');
+    const my = mockData.tickets.filter(t => t.assigned_to === state.currentUser.name && t.status === 'Closed' && t.agent_response && t.agent_response.includes('[Customer]:'));
+    if (badge) badge.textContent = my.length;
+    if (!my.length) { list.innerHTML = '<div class="empty-state" style="padding:20px;"><i class="fas fa-heart" style="font-size:2rem;opacity:0.15;"></i><p style="font-size:0.84rem;">No messages yet.</p></div>'; return; }
+    list.innerHTML = my.map(t => {
+        const msg = (t.agent_response.match(/\[Customer\]: (.+)$/s)||[,'Thank you!'])[1].trim();
+        return `<div onclick="showThankYouModal(${t.id})" style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.12);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.09)'" onmouseout="this.style.background='rgba(239,68,68,0.05)'"><div style="flex:1;"><p style="margin:0;font-size:0.84rem;font-weight:600;">${t.applicant_email||'Customer'}</p><p style="margin:3px 0 0;font-size:0.78rem;color:var(--text-dim);">${msg.substring(0,60)}${msg.length>60?'…':''}</p></div><i class="fas fa-heart" style="color:#e74c3c;font-size:0.82rem;margin-top:3px;"></i></div>`;
+    }).join('');
+}
+function showThankYouModal(id) {
+    const t = mockData.tickets.find(x => x.id == id); if (!t) return;
+    const msg = t.agent_response ? (t.agent_response.match(/\[Customer\]: (.+)$/s)||[,'Thank you!'])[1].trim() : 'Thank you!';
+    document.getElementById('thankYouModalBody').innerHTML = msg;
+    document.getElementById('thankYouModalMeta').innerHTML = `From: <strong style="color:var(--accent);">${t.applicant_email||'Customer'}</strong> | Ticket #${t.id}`;
+    document.getElementById('thankYouModal').style.display = 'flex';
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+function renderReports() {
+    const tickets = mockData.tickets; const total = tickets.length;
+    const open = tickets.filter(t => t.status === 'Open').length;
+    const inprog = tickets.filter(t => t.status === 'In Progress' || t.status === 'Work' || t.status === 'Assigned').length;
+    const resolved = tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length;
+    const high = tickets.filter(t => t.priority === 'High').length;
+    const sg = document.getElementById('reportSummaryGrid');
+    if (sg) sg.innerHTML = [['Total Tickets',total,'var(--accent)','fa-ticket-alt'],['Open',open,'var(--success)','fa-door-open'],['In Progress',inprog,'var(--warning)','fa-spinner'],['Resolved / Closed',resolved,'#94a3b8','fa-check-double'],['High Priority',high,'var(--danger)','fa-fire'],['Active Agents',mockData.users.filter(u=>u.role==='Team Agent').length,'var(--secondary)','fa-headset']].map(([l,v,c,i]) => `<div class="report-card"><i class="fas ${i}" style="color:${c};font-size:1.5rem;margin-bottom:10px;"></i><div class="rc-num" style="background:linear-gradient(135deg,#fff,${c});background-clip:text;-webkit-text-fill-color:transparent;">${v}</div><div class="rc-label">${l}</div></div>`).join('');
+    const statuses = ['Open','Work','In Progress','Pending Customer Response','Resolved','Closed'];
+    const statusColors = { Open:'var(--success)', Work:'var(--accent)', Assigned:'var(--accent)', 'In Progress':'var(--warning)', 'Pending Customer Response':'#a78bfa', Resolved:'#10b981', Closed:'#64748b' };
+    const bsEl = document.getElementById('reportByStatus');
+    if (bsEl) { const max = Math.max(...statuses.map(s => tickets.filter(t => t.status === s).length), 1); bsEl.innerHTML = statuses.map(s => { const c = tickets.filter(t => t.status === s).length; const pct = total ? Math.round((c/total)*100) : 0; const w = Math.round((c/max)*100); return `<div style="margin-bottom:13px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem;"><span style="color:var(--text-dim);">${s}</span><span style="color:${statusColors[s]||'var(--text-dim)'};font-weight:700;">${c} <span style="color:var(--text-dim);font-weight:400;">(${pct}%)</span></span></div><div style="height:6px;background:var(--surface);border-radius:6px;overflow:hidden;"><div style="height:100%;width:${w}%;background:${statusColors[s]||'var(--primary)'};border-radius:6px;transition:width .6s;"></div></div></div>`; }).join(''); }
+    const baEl = document.getElementById('reportByAgent');
+    if (baEl) { const agents = mockData.users.filter(u => u.role === 'Team Agent'); if (!agents.length) { baEl.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No agents registered.</p></div>'; } else { const maxLoad = Math.max(...agents.map(a => tickets.filter(t => t.assigned_to === a.name).length), 1); baEl.innerHTML = agents.map(a => { const ta = tickets.filter(t => t.assigned_to === a.name).length; const ra = tickets.filter(t => t.assigned_to === a.name && (t.status === 'Resolved'||t.status === 'Closed')).length; const w = Math.round((ta/maxLoad)*100); const ini = a.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase(); return `<div style="margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.7rem;">${ini}</div><span style="font-size:0.84rem;">${a.name}</span></div><div style="font-size:0.76rem;"><span style="color:var(--warning);">${ta-ra} active</span> &bull; <span style="color:var(--success);">${ra} resolved</span></div></div><div style="height:6px;background:var(--surface);border-radius:6px;overflow:hidden;"><div style="height:100%;width:${w}%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:6px;"></div></div></div>`; }).join(''); } }
+    const priorities = ['High','Medium','Low'];
+    const prioColors = { High:'var(--danger)', Medium:'var(--warning)', Low:'var(--success)' };
+    const bpEl = document.getElementById('reportByPriorityFull');
+    if (bpEl) { const maxP = Math.max(...priorities.map(p => tickets.filter(t => t.priority === p).length), 1); bpEl.innerHTML = priorities.map(p => { const c = tickets.filter(t => t.priority === p).length; const w = Math.round((c/maxP)*100); return `<div style="margin-bottom:13px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem;"><span style="color:var(--text-dim);">${p} Priority</span><span style="color:${prioColors[p]};font-weight:700;">${c}</span></div><div style="height:6px;background:var(--surface);border-radius:6px;overflow:hidden;"><div style="height:100%;width:${w}%;background:${prioColors[p]};border-radius:6px;"></div></div></div>`; }).join(''); }
+    const rtEl = document.getElementById('reportResolutionTime');
+    if (rtEl) { const res_t = tickets.filter(t => (t.status === 'Resolved'||t.status === 'Closed') && t.resolution_duration != null); if (!res_t.length) { rtEl.innerHTML = '<div class="empty-state" style="padding:20px;"><i class="fas fa-hourglass-half" style="font-size:2rem;opacity:0.2;"></i><p>No resolved tickets yet.</p></div>'; } else { const avg = Math.round(res_t.reduce((s,t) => s+t.resolution_duration, 0)/res_t.length); const mn = Math.min(...res_t.map(t => t.resolution_duration)); const mx = Math.max(...res_t.map(t => t.resolution_duration)); const fmt = m => m < 60 ? m+'m' : Math.floor(m/60)+'h '+(m%60)+'m'; rtEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center;margin-bottom:16px;">${[['Avg',fmt(avg),'var(--accent)'],['Fastest',fmt(mn),'var(--success)'],['Slowest',fmt(mx),'var(--danger)']].map(([l,v,c]) => `<div style="background:var(--surface);border-radius:12px;padding:14px;"><div style="font-size:1.3rem;font-weight:800;color:${c};">${v}</div><div style="font-size:0.7rem;color:var(--text-dim);text-transform:uppercase;margin-top:4px;">${l}</div></div>`).join('')}</div>`; } }
+}
+
+// ── User management ───────────────────────────────────────────────────────────
+function loadUsers() { renderCustomerTable(); if (document.getElementById('statUsers')) document.getElementById('statUsers').innerText = mockData.users.length; }
+function renderCustomerTable(list) {
+    const tbody = document.getElementById('customerTableBody'); const users = list||mockData.users;
+    if (!users.length) { tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><i class="fas fa-users-slash"></i><p>No users.</p></div></td></tr>'; return; }
+    const colors = ['#6366f1','#ef4444','#10b981','#f59e0b','#8b5cf6','#06b6d4'];
+    tbody.innerHTML = users.map(u => {
+        const ct = u.clickthrough||0;
+        const ini = (u.name||'?').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+        const av = `<div style="width:34px;height:34px;border-radius:50%;background:${colors[(u.id||0)%colors.length]};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.72rem;">${ini}</div>`;
+        const regDate = u.registeredAt ? new Date(u.registeredAt).toLocaleDateString() : '—';
+        const roleColor = { Admin:'var(--danger)', 'Team Agent':'var(--accent)', Customer:'var(--success)' }[u.role]||'var(--text-dim)';
+        return `<tr><td>${av}</td><td><b style="font-size:0.88rem;">${esc(u.name||'')}</b></td><td style="color:var(--text-dim);font-size:0.82rem;">${esc(u.email||'—')}</td><td style="color:var(--text-dim);font-size:0.82rem;">${esc(u.phone||'—')}</td><td><span class="category-tag">${esc(u.department||'—')}</span></td><td><span style="color:${roleColor};font-weight:600;font-size:0.82rem;">${esc(u.role||'Customer')}</span></td><td style="color:var(--text-dim);font-size:0.8rem;">${regDate}</td><td><div style="display:flex;align-items:center;gap:7px;"><div class="clickthrough-container"><div class="clickthrough-bar" style="width:${ct}%"></div></div><span style="font-size:0.78rem;">${ct}%</span></div></td><td><div class="action-btns"><button class="btn-icon btn-warning" onclick="openEditUserModal(${u.id})" style="color:var(--warning);" title="Edit"><i class="fas fa-pencil-alt"></i></button><button class="btn-icon btn-danger" onclick="removeUser(${u.id})" title="Delete"><i class="fas fa-trash"></i></button></div></td></tr>`;
+    }).join('');
+}
+function filterUsers() { const v = document.getElementById('filterSelect').value; renderCustomerTable(v === 'all' ? undefined : mockData.users.filter(u => u.department === v)); }
+function filterUsersTable() { const q = document.getElementById('userSearchInput').value.toLowerCase(); document.querySelectorAll('#customerTableBody tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
+function openUserModal() {
+    state.editingUserId = null;
+    document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-plus" style="color:var(--primary);margin-right:8px;"></i> Add User';
+    ['editUserId','newName','newEmail','newPhone'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('userModal').style.display = 'flex';
+}
+function openEditUserModal(id) {
+    const u = mockData.users.find(x => x.id == id); if (!u) return;
+    state.editingUserId = id;
+    document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-edit" style="color:var(--primary);margin-right:8px;"></i> Edit User';
+    document.getElementById('editUserId').value = id;
+    document.getElementById('newName').value = u.name||'';
+    document.getElementById('newEmail').value = u.email||'';
+    document.getElementById('newPhone').value = u.phone||'';
+    document.getElementById('newRole').value = u.role||'Customer';
+    document.getElementById('newDept').value = u.department||'Sales';
+    document.getElementById('userModal').style.display = 'flex';
+}
+function closeUserModal() { document.getElementById('userModal').style.display = 'none'; state.editingUserId = null; }
+function saveUser() {
+    const name = document.getElementById('newName').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const role = document.getElementById('newRole').value;
+    const dept = document.getElementById('newDept').value;
+    const phone = document.getElementById('newPhone').value.trim();
+    if (!name || !email) return showToast('Name and Email required');
+    if (state.editingUserId) {
+        const idx = mockData.users.findIndex(u => u.id == state.editingUserId);
+        if (idx > -1) Object.assign(mockData.users[idx], { name, email, role, department: dept, phone });
+        if (usingLaravelBackend) { API.put(`/api/users/${state.editingUserId}`, { name, email, role, department: dept, phone }).catch(() => {}); }
+        logActivity(`User updated: ${name}`, 'user-edit');
+        saveDB(); closeUserModal(); renderCustomerTable();
+        if (document.getElementById('statUsers')) document.getElementById('statUsers').innerText = mockData.users.length;
+        showToast('User updated'); checkAdminBanner();
+    } else {
+        const tempPass = Math.random().toString(36).slice(2,10);
+        hashPassword(tempPass).then(hashed => {
+            const newUser = { id: Date.now(), name, email, role, department: dept, phone, clickthrough: Math.floor(Math.random()*60)+10, password: hashed, registeredAt: new Date().toISOString() };
+            mockData.users.unshift(newUser);
+            if (usingLaravelBackend) { API.post('/api/users', {...newUser, password: tempPass}).catch(() => {}); }
+            logActivity(`New user added: ${name} (${role})`, 'user-add');
+            saveDB(); closeUserModal(); renderCustomerTable();
+            if (document.getElementById('statUsers')) document.getElementById('statUsers').innerText = mockData.users.length;
+            showToast(`User added. Temp password: ${tempPass}`); checkAdminBanner();
+        });
+    }
+}
+function removeUser(id) {
+    if (!confirm('Delete this user?')) return;
+    const u = mockData.users.find(x => x.id == id);
+    mockData.users = mockData.users.filter(u => u.id != id);
+    if (usingLaravelBackend && u) { API.delete(`/api/users/${id}`).catch(() => {}); }
+    if (u) logActivity(`User removed: ${u.name}`, 'user-remove');
+    saveDB(); renderCustomerTable();
+    if (document.getElementById('statUsers')) document.getElementById('statUsers').innerText = mockData.users.length;
+    showToast('User removed'); checkAdminBanner();
+}
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+function loadProfileData() {
+    if (!state.currentUser) return;
+    document.getElementById('profileName').value = state.currentUser.name||'';
+    document.getElementById('profileEmail').value = state.currentUser.email||'';
+    document.getElementById('profileDept').value = state.currentUser.department||'Sales';
+}
+async function updateProfile() {
+    const name = document.getElementById('profileName').value.trim();
+    const email = document.getElementById('profileEmail').value.trim();
+    const dept = document.getElementById('profileDept').value;
+    const pass = document.getElementById('profileNewPass').value;
+    if (!name || !email) return showToast('Name and Email required');
+    if (state.currentUser) {
+        const idx = mockData.users.findIndex(u => u.id === state.currentUser.id);
+        if (idx > -1) {
+            mockData.users[idx].name = name; mockData.users[idx].email = email; mockData.users[idx].department = dept;
+            if (pass) { mockData.users[idx].password = await hashPassword(pass); }
+        }
+        state.currentUser.name = name; state.currentUser.email = email; state.currentUser.department = dept;
+        if (usingLaravelBackend) { API.put('/api/profile', { name, email, department: dept, ...(pass ? { password: pass, password_confirmation: pass } : {}) }).catch(() => {}); }
+    }
+    saveDB(); showToast('Profile updated!'); buildNav();
+}
+function previewProfileImage(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const img = document.getElementById('profilePreview'); img.src = e.target.result; img.style.display = 'block'; document.getElementById('profilePlaceholder').style.display = 'none'; }; r.readAsDataURL(input.files[0]); } }
+
+// ── Admin creation ────────────────────────────────────────────────────────────
+async function createFirstAdmin() {
+    const name = document.getElementById('navAdminName').value.trim();
+    const email = document.getElementById('navAdminEmail').value.trim();
+    const pass = document.getElementById('navAdminPass').value;
+    if (!name || !email || !pass) return showToast('Fill all fields');
+    if (pass.length < 6) return showToast('Password must be at least 6 characters');
+    if (mockData.users.some(u => u.role === 'Admin')) { showToast('Admin already exists!'); checkAdminBanner(); return; }
+    const hashed = await hashPassword(pass);
+    mockData.users.push({ id: Date.now(), name, email, password: hashed, role: 'Admin', department: 'Administration', clickthrough: 100, phone: '', registeredAt: new Date().toISOString() });
+    logActivity(`First Administrator created: ${name}`, 'admin-setup'); saveDB();
+    showToast('✅ Admin created! Please log in.'); ['navAdminName','navAdminEmail','navAdminPass'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    if (usingLaravelBackend) { API.post('/register', { name, email, password: pass, password_confirmation: pass, role: 'Admin', department: 'Administration' }).catch(() => {}); }
+    checkAdminBanner(); refreshRegisterPage(); router('login');
+}
+
+function refreshRegisterPage() {
+    const hasAdmin = mockData.users.some(u => u.role === 'Admin');
+    const notice = document.getElementById('adminTakenNotice'); const roleSelect = document.getElementById('regRole'); if (!roleSelect) return;
+    Array.from(roleSelect.options).forEach(o => { if (o.value === 'Admin') roleSelect.removeChild(o); });
+    if (hasAdmin) { if (notice) notice.style.display = 'block'; }
+    else { if (notice) notice.style.display = 'none'; const opt = document.createElement('option'); opt.value = 'Admin'; opt.textContent = '⭐ Administrator (First-time only)'; opt.style.color = 'var(--warning)'; roleSelect.insertBefore(opt, roleSelect.firstChild); roleSelect.value = 'Admin'; }
+}
+
+// ── Home stats ────────────────────────────────────────────────────────────────
+function renderHomeStats() {
+    const el = document.getElementById('homeStats'); if (!el) return;
+    const total = mockData.tickets.length;
+    const resolved = mockData.tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length;
+    const agents = mockData.users.filter(u => u.role === 'Team Agent').length;
+    const users = mockData.users.length;
+    el.innerHTML = [['Total Tickets',total,'var(--primary)','fa-ticket-alt'],['Resolved',resolved,'var(--success)','fa-check-circle'],['Agents',agents,'var(--accent)','fa-headset'],['Users',users,'var(--secondary)','fa-users']].map(([l,v,c,i]) => `<div class="stat-card" style="text-align:center;"><i class="fas ${i}" style="color:${c};font-size:1.5rem;margin-bottom:10px;display:block;"></i><div style="font-size:2rem;font-weight:800;color:${c};line-height:1;">${v}</div><div style="font-size:0.78rem;color:var(--text-dim);margin-top:6px;text-transform:uppercase;letter-spacing:0.5px;">${l}</div></div>`).join('');
+}
+
+// ── Docs ──────────────────────────────────────────────────────────────────────
+function showDoc(k) { document.getElementById('docDisplay').innerHTML = docsData[k]||'<p style="color:var(--text-dim);">Not found.</p>'; document.querySelectorAll('.doc-sidebar button').forEach(b => b.classList.remove('active-doc')); document.getElementById('btn-'+k)?.classList.add('active-doc'); }
+
+// ── Notifications & toast ─────────────────────────────────────────────────────
+function showToast(m) { const x = document.getElementById('toast'); x.innerText = m; x.className = 'show'; setTimeout(() => x.className = x.className.replace('show',''), 3000); }
+function pushRTNotif(title, body, type='info', icon='fa-bell') {
+    const stack = document.getElementById('rtNotifStack'); if (!stack) return;
+    const el = document.createElement('div'); el.className = 'rt-notif';
+    el.innerHTML = `<div class="rt-notif-icon ${type}"><i class="fas ${icon}"></i></div><div class="rt-notif-body"><p>${title}</p><small>${body}</small></div>`;
+    stack.appendChild(el);
+    setTimeout(() => { el.classList.add('hiding'); setTimeout(() => el.remove(), 320); }, 4200);
+    state.notifications.unshift({ message: `${title} — ${body}`, time: 'Just now', read: false });
+    buildNav();
+}
+
+// ── Activity log ──────────────────────────────────────────────────────────────
+function logActivity(message, type) { const now = new Date(); mockData.activityLog.unshift({ id: Date.now(), message, type: type||'general', timestamp: now.toISOString(), actor: (state.currentUser?.name||'System') }); if (mockData.activityLog.length > 200) mockData.activityLog.pop(); }
+
+// ── Live polling every 30s ─────────────────────────────────────────────────────
+let _pollFailCount = 0;
+setInterval(async () => {
+    if (!state.currentUser) return;
+    if (usingLaravelBackend) {
+        try {
+            const [tickets, apps] = await Promise.all([API.get('/api/tickets'), API.get('/api/applications')]);
+            mockData.tickets = tickets; mockData.applications = apps;
+            _pollFailCount = 0;
+            // Remove stale-data badge if it was shown
+            document.getElementById('staleDataBadge')?.remove();
+        } catch(e) {
+            _pollFailCount++;
+            if (_pollFailCount === 2) {
+                // Show non-intrusive banner after 2 consecutive failures
+                if (!document.getElementById('staleDataBadge')) {
+                    const badge = document.createElement('div');
+                    badge.id = 'staleDataBadge';
+                    badge.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9998;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:var(--warning);padding:8px 20px;border-radius:20px;font-size:0.78rem;font-weight:600;backdrop-filter:blur(12px);';
+                    badge.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>Showing cached data — server unreachable';
+                    document.body.appendChild(badge);
+                }
+            }
+        }
+    }
+    if (state.currentUser?.role === 'Admin' && state.currentView === 'admin-dashboard') syncDashboard();
+    if (state.currentUser?.role === 'Team Agent' && state.currentView === 'agent-dashboard') renderAgentDashboard();
+    if (state.currentUser && state.currentView === 'customer-status') renderCustomerStatus();
+}, 30000);
+
+window.onclick = function(e) { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+    const lastEmail = localStorage.getItem('inkomane_last_user');
+    const emailEl = document.getElementById('uniEmail');
+    if (emailEl && lastEmail) emailEl.value = lastEmail;
+
+    // Try to connect to Laravel backend
+    try {
+        const [users, tickets, apps] = await Promise.all([
+            API.get('/api/users'),
+            API.get('/api/tickets'),
+            API.get('/api/applications'),
+        ]);
+        usingLaravelBackend = true;
+
+        // Replace local cache entirely with fresh DB data — never merge stale local IDs
+        mockData.users        = users;
+        mockData.tickets      = tickets;
+        mockData.applications = apps;
+        saveDB();
+        console.log('Connected to Laravel database');
+
+        // If saved session references a user ID no longer in the fresh DB, clear it
+        try {
+            const raw = localStorage.getItem('inkomane_session');
+            if (raw) {
+                const saved = JSON.parse(raw);
+                if (!mockData.users.find(u => u.id === saved.id)) {
+                    console.warn('[INKOMANE] Session user not found in fresh DB — clearing session.');
+                    localStorage.removeItem('inkomane_session');
+                }
+            }
+        } catch(e) {}
+
+    } catch(e) {
+        usingLaravelBackend = false;
+        console.log('Running in local mode (localStorage). Connect Laravel API to sync data.');
+    }
+
+    restoreSession();
+    checkAdminBanner();
+    showDoc('overview');
+
+    if (state.currentUser) {
+        const targetView = state.pendingView || null;
+        if (targetView) router(targetView); else redirectByRole(state.currentUser);
+        pushRTNotif('Session restored', `Welcome back, ${state.currentUser.name}!`, 'success', 'fa-shield-alt');
+    } else {
+        router('home');
+    }
+});
+</script>
+</body>
+</html>

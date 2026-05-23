@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INKOMANE | Support Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --accent: #a855f7;
+            --modern-gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .reveal {
+            animation: fadeInUp 0.8s var(--ease-out-expo) forwards;
+        }
+
+        /* --- Component Styling --- */
+        .text-gradient { 
+            background: var(--modern-gradient); 
+            background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.6s var(--ease-out-expo);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 40px 80px rgba(99, 102, 241, 0.15);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-gradient {
+            background: var(--modern-gradient);
+            background-size: 200% auto;
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            transition: all 0.4s var(--ease-out-expo);
+        }
+
+        .btn-gradient:hover {
+            background-position: right center;
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+
+        /* --- Chat & Dashboard UI --- */
+        .chat-box { 
+            height: 350px; 
+            overflow-y: auto; 
+            background: rgba(255,255,255,0.5); 
+            padding: 20px; 
+            border-radius: 15px;
+        }
+
+        .message-text { 
+            padding: 12px 18px; 
+            border-radius: 20px; 
+            max-width: 80%; 
+            font-size: 0.95rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .message.agent .message-text { background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+        .message.customer .message-text { background: white; color: #334155; border-bottom-left-radius: 4px; }
+
+        .status-pill {
+            background: var(--modern-gradient);
+            background-size: 200% auto;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .status-pill:hover { animation: shimmer 2s linear infinite; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        footer { background: #0f172a; color: #94a3b8; padding: 60px 0; }
+        
+        #portal-view { display: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-3" href="#" onclick="location.reload()">
+                <span class="text-gradient">INKOMANE</span>
+            </a>
+            <div class="ms-auto d-flex align-items-center">
+                <button id="loginBtn" class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#authModal">Sign In</button>
+                <div id="userMenu" class="dropdown" style="display:none;">
+                    <span class="me-3 d-none d-md-inline">Role: <strong id="role-display" class="text-primary">Admin</strong></span>
+                    <button class="btn btn-light rounded-circle shadow-sm" data-bs-dropdown="dropdown" id="userDrop" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-user"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                        <li><a class="dropdown-item text-danger" href="#" onclick="location.reload()">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="landing-view">
+        <header class="py-5 text-center reveal">
+            <div class="container py-5">
+                <h1 class="display-3 fw-bold mb-3">Support Ticketing <br><span class="text-gradient">Made Beautiful.</span></h1>
+                <p class="lead text-muted mb-5">An integrated solution for customer management and technical resolution.</p>
+                <button class="btn btn-gradient btn-lg px-5" data-bs-toggle="modal" data-bs-target="#authModal">Start Now</button>
+            </div>
+        </header>
+
+        <section class="container py-5">
+            <div class="row g-4">
+                <div class="col-md-4 reveal" style="animation-delay: 0.2s;">
+                    <div class="glass-card p-4 h-100">
+                        <div class="status-pill mb-3">Ticket Lifecycle</div>
+                        <h5>Smart Tracking</h5>
+                        <p class="small text-muted">Monitor tickets through Open, Assigned, and Resolved phases.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 reveal" style="animation-delay: 0.4s;">
+                    <div class="glass-card p-4 h-100">
+                        <div class="status-pill mb-3">Auto-Route</div>
+                        <h5>Round-Robin Logic</h5>
+                        <p class="small text-muted">Intelligent assignment ensures even workload for support agents.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 reveal" style="animation-delay: 0.6s;">
+                    <div class="glass-card p-4 h-100">
+                        <div class="status-pill mb-3">Analytics</div>
+                        <h5>Real-time Stats</h5>
+                        <p class="small text-muted">Comprehensive reporting for administrators and team leads.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="portal-view" class="container py-5">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="glass-card p-3 sticky-top" style="top: 100px;">
+                    <h6 class="fw-bold text-muted small text-uppercase mb-3">Navigation</h6>
+                    <div class="list-group list-group-flush" id="side-menu">
+                        </div>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <div id="dashboard-content">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="authModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-0">
+                <div class="modal-body p-4">
+                    <ul class="nav nav-pills nav-justified mb-4" id="pills-tab">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pills-login">Login</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-reg">Register</button></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="pills-login">
+                            <form onsubmit="doLogin(event, 'Admin')">
+                                <input type="email" class="form-control mb-3 py-2" placeholder="Email Address" required>
+                                <input type="password" class="form-control mb-4 py-2" placeholder="Password" required>
+                                <button class="btn btn-gradient w-100">Enter System</button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="pills-reg">
+                            <form onsubmit="doRegister(event)">
+                                <input type="text" class="form-control mb-3 py-2" placeholder="Full Name" required>
+                                <select class="form-select mb-3 py-2" id="reg-role">
+                                    <option value="Customer">Customer</option>
+                                    <option value="Agent">Support Agent</option>
+                                    <option value="Admin">Administrator</option>
+                                </select>
+                                <input type="password" class="form-control mb-4 py-2" placeholder="Set Password" required>
+                                <button class="btn btn-dark w-100 rounded-pill">Create Account</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5">
+        <div class="container text-center">
+            <h4 class="text-white mb-3">INKOMANE</h4>
+            <p class="small">&copy; 2026 Integrated Ticketing Hub. Kigali, Rwanda.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function doLogin(e, role) {
+            e.preventDefault();
+            initDashboard(role);
+        }
+
+        function doRegister(e) {
+            e.preventDefault();
+            const role = document.getElementById('reg-role').value;
+            initDashboard(role);
+        }
+
+        function initDashboard(role) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+            modal.hide();
+
+            document.getElementById('landing-view').style.display = 'none';
+            document.getElementById('portal-view').style.display = 'block';
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('userMenu').style.display = 'flex';
+            document.getElementById('role-display').innerText = role;
+
+            renderUI(role);
+        }
+
+        function renderUI(role) {
+            const menu = document.getElementById('side-menu');
+            const content = document.getElementById('dashboard-content');
+
+            // Set Sidebar
+            if (role === 'Admin') {
+                menu.innerHTML = `<a class="list-group-item list-group-item-action border-0 mb-2 active rounded" href="#"><i class="fa fa-chart-line me-2"></i>Statistics</a>
+                                 <a class="list-group-item list-group-item-action border-0 mb-2 rounded" href="#"><i class="fa fa-users me-2"></i>Agents</a>`;
+                content.innerHTML = `
+                    <h3 class="reveal mb-4">Admin Overview</h3>
+                    <div class="row g-4">
+                        <div class="col-md-4 reveal delay-1"><div class="glass-card p-4 text-center"><h2>45</h2><p class="text-muted mb-0">Resolved Today</p></div></div>
+                        <div class="col-md-4 reveal delay-2"><div class="glass-card p-4 text-center"><h2>12</h2><p class="text-muted mb-0">Open Tickets</p></div></div>
+                        <div class="col-md-4 reveal delay-3"><div class="glass-card p-4 text-center"><h2>5</h2><p class="text-muted mb-0">Agents Active</p></div></div>
+                    </div>`;
+            } else {
+                menu.innerHTML = `<a class="list-group-item list-group-item-action border-0 mb-2 active rounded" href="#"><i class="fa fa-ticket me-2"></i>My Tickets</a>
+                                 <a class="list-group-item list-group-item-action border-0 mb-2 rounded" href="#"><i class="fa fa-plus me-2"></i>New Request</a>`;
+                content.innerHTML = `
+                    <div class="glass-card reveal">
+                        <div class="card-header bg-transparent p-4 border-bottom d-flex justify-content-between">
+                            <h5 class="mb-0">Ticket #TK-901: Login Issue</h5>
+                            <span class="status-pill">High Priority</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="chat-box mb-3 d-flex flex-column gap-3">
+                                <div class="message customer"><div class="message-text">Hello, I cannot access the portal.</div></div>
+                                <div class="message agent align-self-end"><div class="message-text">Hi! Have you tried clearing your cache?</div></div>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" class="form-control rounded-pill-start border-0 bg-light" placeholder="Type a message...">
+                                <button class="btn btn-gradient px-4">Send</button>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        // Trigger animations on load
+        window.onload = () => {
+            document.querySelectorAll('.reveal').forEach(el => el.style.opacity = '1');
+        }
+    </script>
+</body>
+</html>

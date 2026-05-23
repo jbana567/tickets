@@ -9,21 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
- public function up()
-{
-    Schema::table('tickets', function (Blueprint $table) {
-       // ✅ CORRECT: T
- $table->string('agent_response')->nullable(); 
-    });
-}
-
+     public function up(): void
+    {
+        Schema::create('pages', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->text('content')->nullable();
+            $table->timestamps();
+        });
+    }
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('tickets', function (Blueprint $table) {
-            $table->dropColumn('agent_response');
-        });
+        Schema::dropIfExists('pages');
     }
 };

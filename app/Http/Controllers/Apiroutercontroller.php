@@ -98,6 +98,8 @@ class ApiRouterController extends Controller
                     $filePath = 'uploads/' . $fileName;
                 }
 
+                $agentName = $this->nextRoundRobinAgent();
+
                 $appId = DB::table('applications')->insertGetId([
                     'name' => $request->input('name'),
                     'email' => $email,
@@ -106,7 +108,7 @@ class ApiRouterController extends Controller
                     'subject' => $request->input('subject'),
                     'description' => $request->input('description'),
                     'file_path' => $filePath,
-                    'status' => 'pending',
+                    'status' => $agentName ? 'confirmed' : 'pending',
                     'submitted_at' => now(),
                     'created_at' => now()
                 ]);
@@ -124,7 +126,37 @@ class ApiRouterController extends Controller
                     ]);
                 }
 
-                return response()->json(['success' => true, 'id' => $appId]);
+                $ticket = null;
+                if ($agentName) {
+                    $ticketId = DB::table('tickets')->insertGetId([
+                        'subject' => $request->input('subject'),
+                        'category' => $request->input('category') ?? 'Hardware',
+                        'priority' => $request->input('priority') ?? 'Medium',
+                        'status' => 'Work',
+                        'applicant_email' => $email,
+                        'assigned_to' => $agentName,
+                        'description' => $request->input('description'),
+                        'file_path' => $filePath,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+
+                    DB::table('notifications')->insert([
+                        'user_email' => $email,
+                        'message' => "Your application '{$request->input('subject')}' is now work and assigned to $agentName.",
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+
+                    $ticket = DB::table('tickets')->where('id', $ticketId)->first();
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'id' => $appId,
+                    'application' => DB::table('applications')->where('id', $appId)->first(),
+                    'ticket' => $ticket,
+                ]);
             } catch (\Exception $e) {
                 return response()->json(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]);
             }
@@ -353,7 +385,7 @@ class ApiRouterController extends Controller
                 'subject' => $request->input('subject'), 
                 'category' => $request->input('category') ?? 'Hardware', 
                 'priority' => $request->input('priority') ?? 'Medium', 
-                'status' => 'Open', 
+                'status' => $request->input('assignedTo') ? 'Work' : 'Open', 
                 'applicant_email' => $request->input('email'), 
                 'assigned_to' => $request->input('assignedTo'), 
                 'created_at' => now()
@@ -490,6 +522,30 @@ class ApiRouterController extends Controller
 
     }
 
+    private function nextRoundRobinAgent(): ?string
+    {
+        $agents = DB::table('users')
+            ->where('role', 'Team Agent')
+            ->orderBy('id')
+            ->pluck('name')
+            ->values();
+
+        if ($agents->isEmpty()) {
+            return null;
+        }
+
+        $lastAssigned = DB::table('tickets')
+            ->whereIn('assigned_to', $agents)
+            ->whereNotNull('assigned_to')
+            ->latest('id')
+            ->value('assigned_to');
+
+        $lastIndex = $lastAssigned ? $agents->search($lastAssigned) : false;
+        $nextIndex = $lastIndex === false ? 0 : ($lastIndex + 1) % $agents->count();
+
+        return $agents[$nextIndex];
+    }
+
     private function confirmSingleApp($appId)
     {
         try {
@@ -500,21 +556,13 @@ class ApiRouterController extends Controller
         if ($app) {
             DB::table('applications')->where('id', $appId)->update(['status' => 'confirmed']);
             
-            $agent = DB::table('users')
-                ->where('role', 'Team Agent')
-                ->leftJoin('tickets', 'users.name', '=', 'tickets.assigned_to')
-                ->select('users.name', DB::raw('count(tickets.id) as active_tickets'))
-                ->groupBy('users.name')
-                ->orderBy('active_tickets', 'asc')
-                ->first();
-
-            $agentName = $agent ? $agent->name : 'Unassigned';
+            $agentName = $this->nextRoundRobinAgent() ?? 'Unassigned';
 
             DB::table('tickets')->insert([
                 'subject' => $app->subject,
                 'category' => $app->category,
                 'priority' => 'Medium',
-                'status' => 'Open',
+                'status' => $agentName === 'Unassigned' ? 'Open' : 'Work',
                 'applicant_email' => $app->email,
                 'assigned_to' => $agentName,
                 'description' => $app->description,
